@@ -12,14 +12,21 @@ import {
   Divider,
   IconButton,
   Container,
+  Grid, 
+  Paper
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import { mainListItems, secondaryListItems } from "./lisItems";
+import  MainListItems from "./lisItems";
+import Profile from "./Profile";
+import CalendarPage from "./CalendarPage";
 
 const NavBar = (props) => {
   const classes = useStyles();
   const [openD, setOpen] = React.useState(true);
+  const [page, setPage] = React.useState(<Profile/>);
+
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -32,14 +39,18 @@ const NavBar = (props) => {
     props.setUserState();
   };
 
+  
+
   return (
     <div className={classes.root}>
       <CssBaseline />
+
       <AppBar
         position="absolute"
         className={clsx(classes.appBar, openD && classes.appBarShift)}
       >
         <Toolbar className={classes.toolbar}>
+
           <IconButton
             edge="start"
             color="inherit"
@@ -52,6 +63,7 @@ const NavBar = (props) => {
           >
             <MenuIcon />
           </IconButton>
+
           <Typography
             component="h1"
             variant="h6"
@@ -61,8 +73,10 @@ const NavBar = (props) => {
           >
             My Calendar
           </Typography>
+          
         </Toolbar>
       </AppBar>
+
       <Drawer
         variant="permanent"
         classes={{
@@ -70,23 +84,37 @@ const NavBar = (props) => {
         }}
         open={openD}
       >
+
+
         <div className={classes.toolbarIcon}>
+          
+        <img
+              src={"/logo3.jpg"}
+              alt=""
+              style={{
+                height: 80,
+                marginTop: -5
+
+              }}
+            />
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
         </div>
 
         <Divider />
-        <List>{mainListItems}</List>
+        <List>{<MainListItems page={page} setPages={setPage}/>}</List>
         <Divider />
+
         <Button variant="contained" color="primary" onClick={handleClose}>
           Logout
         </Button>
+
       </Drawer>
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}></Container>
-      </main>
+
+      {page}
+
+      
     </div>
   );
 };
@@ -168,7 +196,7 @@ const useStyles = makeStyles((theme) => ({
     flexDirection: "column",
   },
   fixedHeight: {
-    height: 240,
+    height: 500,
   },
 }));
 
