@@ -41,6 +41,7 @@ const SignUp = (props) => {
         }
       })
       .catch((error) => {
+        // eslint-disable-next-line default-case
         switch (error.code) {
           case "auth/email-already-in-use":
             toast.error(error.message);

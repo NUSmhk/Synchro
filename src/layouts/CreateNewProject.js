@@ -11,9 +11,7 @@ import {
 import AccountCircleIcon from "@material-ui/icons/AccountCircle"
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
-
-
-function Profile() {
+function CreateNewProject() {
   const classes = useStyles();
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
     
@@ -29,18 +27,13 @@ return(
 
                   <Typography>
 
-                    Profile Page
+                    Create a New Project
                   </Typography>
 
-                  <AccountCircleIcon className={classes.accountCircle}></AccountCircleIcon>
+
 
                   <ValidatorForm className={classes.form}>
 
-              <Paper >
-                <Typography style={{height: 25}}>
-                  Current Email: test@gmail.com 
-                </Typography>
-              </Paper>
 
               <br/>
 
@@ -48,7 +41,7 @@ return(
                 variant="outlined"
                 margin="normal"
                 fullWidth
-                label="New Email Address"
+                label="Project Name"
                 name="email"
                 validators={["required", "isEmail"]}
                 errorMessages={["this field is required", "Email is not valid"]}
@@ -58,7 +51,7 @@ return(
               <TextValidator
                 variant="outlined"
                 fullWidth
-                label="New Password"
+                label="Add Group Member"
                 name="password"
                 type="password"
     
@@ -67,19 +60,7 @@ return(
                 autoComplete="off"
               />
               <br />
-              <TextValidator
-                variant="outlined"
-                label="Confirm New Password"
-                fullWidth
-                name="confirmPassword"
-                type="password"
-                validators={["isPasswordMatch", "required"]}
-                errorMessages={["Password mismatch", "this field is required"]}
-        
-                autoComplete="off"
-              />
-
-
+    
               <Button
                 type="submit"
                 fullWidth
@@ -87,7 +68,7 @@ return(
                 color="primary"
                 className={classes.submit}
               >
-                UPDATE PROFILE
+                Create New Project
               </Button>
             </ValidatorForm>
 
@@ -144,4 +125,4 @@ const useStyles = makeStyles((theme) => ({
   }));
 
 
-  export default Profile;
+  export default CreateNewProject;

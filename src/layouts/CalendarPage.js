@@ -1,5 +1,6 @@
 import React from "react";
 import clsx from "clsx";
+import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
   makeStyles,
   CssBaseline,
@@ -19,32 +20,64 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import  MainListItems from "./lisItems";
 import Calendar from "react-calendar";
+import CalEvents from "./CalEvents";
+import BigCalendar from "react-big-calendar-like-google";
+import moment from "moment";
+
+
+BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
+
 
 function CalendarPage() {
+
+
   const classes = useStyles();
     const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+    
     
 
 return(
 <main className={classes.content}>
         <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
 
-        <Grid container spacing={3}>
-            {/* Chart */}
-              <Paper className={fixedHeightPaper}>
-                <Calendar/>
+
+<Grid container >
+
+<Grid item xs={8} >
+
+   </Grid>
+
+
+
+   <Grid item  xs={2} >
+   <Button variant="contained" color="primary"> Add Event </Button>
+   </Grid>
+
+   <Grid item  xs={2}>
+   <Button variant="contained" color="primary"> Import Calendar </Button>
+   </Grid>
+ 
+</Grid>
+   
+              <Paper className={classes.paper} >
+                 <BigCalendar selectable
+          events={CalEvents()}
+          defaultView="week"
+          scrollToTime={new Date(1970, 1, 1, 6)}
+          defaultDate={new Date(2015, 3, 12)}
+          onSelectEvent={event => alert(event.title)}
+          onSelectSlot={slotInfo =>
+            alert(
+              `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
+                `\nend: ${slotInfo.end.toLocaleString()}` +
+                `\naction: ${slotInfo.action}`
+            )
+          }></BigCalendar>
               </Paper>
-            </Grid>
-        </Container>
+
+           
       </main>
-
-
-
 )
-
-
-
 }
 
 
@@ -54,61 +87,13 @@ const useStyles = makeStyles((theme) => ({
     root: {
       display: "flex",
     },
-    toolbar: {
-      paddingRight: 24, // keep right padding when drawer closed
-    },
-    toolbarIcon: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      padding: "0 8px",
-      ...theme.mixins.toolbar,
-    },
-    appBar: {
-      zIndex: theme.zIndex.drawer + 1,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-    },
-    appBarShift: {
-      marginLeft: drawerWidth,
-      width: `calc(100% - ${drawerWidth}px)`,
-      transition: theme.transitions.create(["width", "margin"], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    },
-    menuButton: {
-      marginRight: 36,
-    },
-    menuButtonHidden: {
-      display: "none",
-    },
-    title: {
+    content: {
       flexGrow: 1,
-    },
-    drawerPaper: {
-      position: "relative",
-      whiteSpace: "nowrap",
-      width: drawerWidth,
-      transition: theme.transitions.create("width", {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-    },
-    drawerPaperClose: {
-      overflowX: "hidden",
-      transition: theme.transitions.create("width", {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-      }),
-      width: theme.spacing(7),
-      [theme.breakpoints.up("sm")]: {
-        width: theme.spacing(9),
-      },
+      height: "100vh",
+      overflow: "auto",
     },
     appBarSpacer: theme.mixins.toolbar,
+    
     content: {
       flexGrow: 1,
       height: "100vh",

@@ -24,7 +24,8 @@ import CalendarPage from "./CalendarPage";
 const NavBar = (props) => {
   const classes = useStyles();
   const [openD, setOpen] = React.useState(true);
-  const [page, setPage] = React.useState(<Profile/>);
+  const [page, setPage] = React.useState(<CalendarPage/>);
+  const [title, setTitle] = React.useState("My Calendar")
 
 
   const handleDrawerOpen = () => {
@@ -37,13 +38,13 @@ const NavBar = (props) => {
   const handleClose = () => {
     localStorage.removeItem("user");
     props.setUserState();
-  };
+  };  
 
   
 
   return (
     <div className={classes.root}>
-      <CssBaseline />
+      <CssBaseline>
 
       <AppBar
         position="absolute"
@@ -68,10 +69,9 @@ const NavBar = (props) => {
             component="h1"
             variant="h6"
             color="inherit"
-            noWrap
             className={classes.title}
           >
-            My Calendar
+          {title}
           </Typography>
           
         </Toolbar>
@@ -92,8 +92,9 @@ const NavBar = (props) => {
               src={"/logo3.jpg"}
               alt=""
               style={{
-                height: 80,
-                marginTop: -5
+                height: 70,
+                marginTop: -5,
+                paddingRight: 10
 
               }}
             />
@@ -103,7 +104,7 @@ const NavBar = (props) => {
         </div>
 
         <Divider />
-        <List>{<MainListItems page={page} setPages={setPage}/>}</List>
+        <List>{<MainListItems page={page} setPages={setPage} title={title} setTitles={setTitle}/>}</List>
         <Divider />
 
         <Button variant="contained" color="primary" onClick={handleClose}>
@@ -112,10 +113,13 @@ const NavBar = (props) => {
 
       </Drawer>
 
-      {page}
+  {page}
 
+
+      </CssBaseline>
       
     </div>
+    
   );
 };
 

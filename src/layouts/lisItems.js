@@ -7,6 +7,7 @@ import ListIcon from '@material-ui/icons/List';
 import {ListItemIcon, ListItemText, MenuItem } from "@material-ui/core";
 import Profile from "./Profile";
 import CalendarPage from "./CalendarPage";
+import CreateNewProject from "./CreateNewProject";
 
 
 
@@ -16,7 +17,7 @@ function MainListItems(props) {
   const [selected, setSelected] = useState(2);
   
   return( <div>
-    <MenuItem button onClick={() => {setSelected(1); props.setPages(<Profile/>)}} selected={selected === 1}>
+    <MenuItem button onClick={() => {setSelected(1); props.setPages(<Profile/>); props.setTitles("Profile")}} selected={selected === 1}>
 
     <ListItemIcon>
         <AccountCircleIcon />
@@ -25,14 +26,14 @@ function MainListItems(props) {
     </MenuItem>
 
 
-    <MenuItem button onClick={() => {setSelected(2); props.setPages(<CalendarPage/>)}} selected={selected === 2}>
+    <MenuItem button onClick={() => {setSelected(2); props.setPages(<CalendarPage/>); props.setTitles("My Calendar")}} selected={selected === 2}>
     <ListItemIcon>
         <CalendarTodayIcon />
       </ListItemIcon>
       <ListItemText primary="My Calendar" />
       </MenuItem>
 
-    <MenuItem button onClick={() => setSelected(3)} selected={selected === 3}>
+      <MenuItem button onClick={() => {setSelected(3); props.setPages(<CreateNewProject/>); props.setTitles("Create New Project")}} selected={selected === 3}>
     <ListItemIcon>
         <AddToQueueIcon />
       </ListItemIcon>
