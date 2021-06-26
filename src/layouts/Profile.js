@@ -1,48 +1,144 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import {
   makeStyles,
   Container,
   Button,
   Typography,
-  Grid, 
-  Paper
+  Grid,
+  Paper,
+  Card,
+  CardContent,
 } from "@material-ui/core";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle"
+import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-
-
+import fire from "../helpers/db";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Profile() {
   const classes = useStyles();
-    const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-    
-return(
-<main className={classes.content}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
-            {/* Chart */}
-            <Grid>
-              <Paper className={fixedHeightPaper} justify="center">
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
 
+  // const currUserName = JSON.parse(localStorage.getItem("user")).name;
+  // const currUserEmail = JSON.parse(localStorage.getItem("user")).email;
+  // const currUserId = JSON.parse(localStorage.getItem("user")).userId;
 
+  // fire.auth().currentUser.displayName
+  // fire.auth().currentUser.email
+  const [changedName, setchangedName] = useState(
+    fire.auth().currentUser.displayName
+  );
+  const [changedEmail, setchangedEmail] = useState(
+    fire.auth().currentUser.email
+  );
 
-                  <Typography>
+  const handleName = (event) => {
+    setName(event.target.value);
+  };
 
-                    Profile Page
-                  </Typography>
+  const handleEmail = (event) => {
+    setEmail(event.target.value);
+  };
 
-                  <AccountCircleIcon className={classes.accountCircle}></AccountCircleIcon>
+  const handlePassword = (event) => {
+    setPassword(event.target.value);
+  };
 
-                  <ValidatorForm className={classes.form}>
+  const handleConfirmPassowerd = (event) => {
+    setConfirmPassword(event.target.value);
+  };
 
-              <Paper >
-                <Typography style={{height: 25}}>
-                  Current Email: test@gmail.com 
+  useEffect(() => {
+    ValidatorForm.addValidationRule("isPasswordMatch", (value) => {
+      if (value !== password) {
+        return false;
+      }
+      return true;
+    });
+    return () => {
+      ValidatorForm.removeValidationRule("isPasswordMatch");
+    };
+  }, [password]);
+
+  const handleUpdate = () => {
+    const user = fire.auth().currentUser;
+
+    if (name !== "") {
+      user
+        .updateProfile({
+          displayName: name,
+        })
+        .then(() => setchangedName(name))
+        .catch((error) => {
+          toast.error(error.message);
+        });
+    }
+    if (email !== "") {
+      user
+        .updateEmail(email)
+        .then(() => setchangedEmail(email))
+        .catch((error) => toast.error(error.message));
+    }
+
+    if (password !== "") {
+      user
+        .updatePassword(password)
+        .then(() => {})
+        .catch((error) => toast.error(error.message));
+    }
+  };
+
+  return (
+    <main className={classes.content}>
+      <div className={classes.appBarSpacer} />
+      <Container maxWidth="xs" className={classes.container}>
+        <Grid>
+          <Card className={fixedHeightPaper} justify="center">
+            <ToastContainer
+              position="top-right"
+              autoClose={3000}
+              hideProgressBar
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover={false}
+            />
+            <Typography>Profile Page</Typography>
+
+            <AccountCircleIcon
+              className={classes.accountCircle}
+            ></AccountCircleIcon>
+
+            <ValidatorForm className={classes.form} onSubmit={handleUpdate}>
+              <Paper>
+                <Typography style={{ height: 25 }}>
+                  Name: {changedName}
                 </Typography>
               </Paper>
 
-              <br/>
+              <TextValidator
+                variant="outlined"
+                margin="normal"
+                fullWidth
+                label="New Name"
+                name="name"
+                value={name}
+                autoComplete="off"
+                onChange={handleName}
+              />
+              <br />
+              <Paper>
+                <Typography style={{ height: 25 }}>
+                  Email: {changedEmail}
+                </Typography>
+              </Paper>
 
               <TextValidator
                 variant="outlined"
@@ -50,9 +146,11 @@ return(
                 fullWidth
                 label="New Email Address"
                 name="email"
-                validators={["required", "isEmail"]}
-                errorMessages={["this field is required", "Email is not valid"]}
+                value={email}
+                validators={["isEmail"]}
+                errorMessages={["Email is not valid"]}
                 autoComplete="off"
+                onChange={handleEmail}
               />
               <br />
               <TextValidator
@@ -61,9 +159,8 @@ return(
                 label="New Password"
                 name="password"
                 type="password"
-    
-                validators={["required"]}
-                errorMessages={["this field is required"]}
+                value={password}
+                onChange={handlePassword}
                 autoComplete="off"
               />
               <br />
@@ -71,14 +168,14 @@ return(
                 variant="outlined"
                 label="Confirm New Password"
                 fullWidth
+                onChange={handleConfirmPassowerd}
                 name="confirmPassword"
                 type="password"
-                validators={["isPasswordMatch", "required"]}
-                errorMessages={["Password mismatch", "this field is required"]}
-        
+                value={confirmPassword}
+                validators={["isPasswordMatch"]}
+                errorMessages={["Password mismatch"]}
                 autoComplete="off"
               />
-
 
               <Button
                 type="submit"
@@ -90,58 +187,50 @@ return(
                 UPDATE PROFILE
               </Button>
             </ValidatorForm>
-
-              </Paper>
-              </Grid>
-        </Container>
-</main>
-
-
-
-)
+          </Card>
+        </Grid>
+      </Container>
+    </main>
+  );
 }
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-      display: "flex",
-    },
-    submit: {
-      margin: theme.spacing(3, 0, 2),
-    },
+  root: {
+    display: "flex",
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
 
-    accountCircle: {
-      fontSize: 200
-    },
-    form: {
-      width: "100%",
-      marginTop: theme.spacing(1),
-    },
-    
-    appBarSpacer: theme.mixins.toolbar,
-    content: {
-      flexGrow: 1,
-      height: '100vh',
-      overflow: 'auto',
-    },
-    container: {
-      paddingTop: theme.spacing(4),
-      paddingBottom: theme.spacing(4),
-      alignItems: "center",
-      paddingLeft: "400px",
-      paddingRight: "400px"
-    },
-    
-    paper: {
-      padding: theme.spacing(2),
-      display: "flex",
-      overflow: "auto",
-      flexDirection: "column",
-      alignItems: "center",      
-    },
-    fixedHeight: {
-      height: 800,
-    },
-  }));
+  accountCircle: {
+    fontSize: 200,
+  },
+  form: {
+    width: "100%",
+    marginTop: theme.spacing(1),
+  },
 
+  appBarSpacer: theme.mixins.toolbar,
+  content: {
+    flexGrow: 1,
+    height: "100vh",
+    overflow: "auto",
+  },
+  container: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
+    alignItems: "center",
+  },
 
-  export default Profile;
+  paper: {
+    padding: theme.spacing(2),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  fixedHeight: {
+    height: 800,
+  },
+}));
+
+export default Profile;

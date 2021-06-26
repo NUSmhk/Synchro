@@ -38,14 +38,15 @@ const Login = (props) => {
       .signInWithEmailAndPassword(email, password)
       .then((response) => {
         const { user } = response;
-        const data = {
-          userId: user.uid,
-          email: user.email,
-        };
-        localStorage.setItem("user", JSON.stringify(data));
-        const storage = localStorage.getItem("user");
-        const loggedInUser = storage !== null ? JSON.parse(storage) : null;
-        props.loggedIn(loggedInUser);
+        // const data = {
+        //   userId: user.uid,
+        //   email: user.email,
+        //   name: user.displayName
+        // };
+        // localStorage.setItem("user", JSON.stringify(data));
+        // const storage = localStorage.getItem("user");
+        // const loggedInUser = storage !== null ? JSON.parse(storage) : null;
+        props.loggedIn(user);
         setLoading(false);
       })
       .catch((error) => {
@@ -117,16 +118,7 @@ const Login = (props) => {
                 autoComplete="off"
                 required
               />
-              {/* <FormControlLabel
-                control={
-                  <Checkbox
-                    value={rememberme}
-                    onChange={(e) => handleCheck(e)}
-                    color="primary"
-                  />
-                }
-                label="Remember me"
-              /> */}
+   
               {loading ? (
                 <CircularProgress
                   color="primary"
@@ -147,15 +139,7 @@ const Login = (props) => {
               >
                 LOGIN
               </Button>
-              {/* <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  className={classes.submit}
-                >
-                  LOGIN
-                </Button> */}
+        
               <Grid container>
                 <Grid item>
                   <Link

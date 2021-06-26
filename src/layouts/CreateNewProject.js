@@ -5,37 +5,52 @@ import {
   Container,
   Button,
   Typography,
-  Grid, 
-  Paper
+  Grid,
+  Paper,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  TextField
+
 } from "@material-ui/core";
-import AccountCircleIcon from "@material-ui/icons/AccountCircle"
+import  AddCircleIcon from "@material-ui/icons/AddCircle";
+import GroupIcon from "@material-ui/icons/Group";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
 function CreateNewProject() {
   const classes = useStyles();
-    const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-    
-return(
-<main className={classes.content}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
-            {/* Chart */}
-            <Grid>
-              <Paper className={fixedHeightPaper} justify="center">
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
+  const [members, addMembers] = React.useState([]);
+  const [newMember, addNewMember] = React.useState("");
 
+  const handleAddMembers = (event) => {
+    newMember === "" ?
 
-                  <Typography>
+    addMembers([...members]) :
 
-                    Create a New Project
-                  </Typography>
+    // newMember.length > 10 ? 
 
+    addMembers([
+      ...members, 
+      {
+      description: newMember
+    }]) 
+  };
 
+  return (
+    <main className={classes.content}>
+      <div className={classes.appBarSpacer} />
+      <Container maxWidth="xs" className={classes.container}>
+        {/* Chart */}
+        <Grid>
+          <Paper className={fixedHeightPaper} justify="center">
+            <Typography>Create a New Project</Typography>
 
-                  <ValidatorForm className={classes.form}>
-
-
-              <br/>
+            <ValidatorForm className={classes.form}>
+              <br />
 
               <TextValidator
                 variant="outlined"
@@ -48,81 +63,119 @@ return(
                 autoComplete="off"
               />
               <br />
-              <TextValidator
-                variant="outlined"
-                fullWidth
-                label="Add Group Member"
-                name="password"
-                type="password"
-    
-                validators={["required"]}
-                errorMessages={["this field is required"]}
-                autoComplete="off"
-              />
-              <br />
-    
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                color="primary"
-                className={classes.submit}
-              >
-                Create New Project
-              </Button>
-            </ValidatorForm>
 
-              </Paper>
+              <Grid container justify="flex-left">
+                <Grid item lg={11}>
+                  <TextValidator
+                    variant="outlined"
+                    fullWidth
+                    label="Add Group Member"
+                    validators={["required"]}
+                    errorMessages={["this field is required"]}
+                    autoComplete="off"
+                    onChange={(event) => {
+                      addNewMember(event.target.value);
+                    }}
+                  />
+                </Grid>
+                <Grid item lg={1}>
+                  <IconButton
+                    variant="contained"
+                    color="primary"
+                    style={{ height: 55, width: 50 }}
+                    onClick={handleAddMembers}
+                  >
+                    <AddCircleIcon></AddCircleIcon>
+                  </IconButton>
+                </Grid>
               </Grid>
-        </Container>
-</main>
+            </ValidatorForm>
+            <br></br>
+            <Typography> Member List:</Typography>
+            <br>
+            </br>
+
+            <List>
+              {members.map((task, index) => (
+
+              <ListItem divider alignItems="flex-start">
+                <ListItemIcon>
+                  <GroupIcon></GroupIcon>
+
+                </ListItemIcon>
+                <ListItemText>
+                  <td>{index + 1}. </td>
+                  <td>{task.description}</td>
+                  </ListItemText>
+                {/* <Typography>
+                  {task.description}
+                </Typography>
+                 */}
+              </ListItem>
+    
+              ))
+              }
+              
+              
+               </List>
 
 
 
-)
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+            >
+              Create New Project
+            </Button>
+          </Paper>
+        </Grid>
+      </Container>
+    </main>
+  );
 }
 
 const useStyles = makeStyles((theme) => ({
-    root: {
-      display: "flex",
-    },
-    submit: {
-      margin: theme.spacing(3, 0, 2),
-    },
+  root: {
+    display: "flex",
+  },
+  submit: {
+    margin: theme.spacing(3, 0, 2),
+  },
 
-    accountCircle: {
-      fontSize: 200
-    },
-    form: {
-      width: "100%",
-      marginTop: theme.spacing(1),
-    },
-    
-    appBarSpacer: theme.mixins.toolbar,
-    content: {
-      flexGrow: 1,
-      height: '100vh',
-      overflow: 'auto',
-    },
-    container: {
-      paddingTop: theme.spacing(4),
-      paddingBottom: theme.spacing(4),
-      alignItems: "center",
-      paddingLeft: "400px",
-      paddingRight: "400px"
-    },
-    
-    paper: {
-      padding: theme.spacing(2),
-      display: "flex",
-      overflow: "auto",
-      flexDirection: "column",
-      alignItems: "center",      
-    },
-    fixedHeight: {
-      height: 800,
-    },
-  }));
+  accountCircle: {
+    fontSize: 200,
+  },
+  form: {
+    width: "100%",
+    marginTop: theme.spacing(1),
+  },
 
+  appBarSpacer: theme.mixins.toolbar,
+  content: {
+    flexGrow: 1,
+    height: "100vh",
+    overflow: "auto",
+  },
+  container: {
+    paddingTop: theme.spacing(4),
+    paddingBottom: theme.spacing(4),
+    alignItems: "center",
+  },
 
-  export default CreateNewProject;
+  paper: {
+    padding: theme.spacing(2),
+    display: "flex",
+    overflow: "auto",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  fixedHeight: {
+    height: 800,
+  },
+}));
+
+export default CreateNewProject;

@@ -20,6 +20,12 @@ const SignUp = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+
+
+  const handleName = (event) => {
+    setName(event.target.value);
+  };
 
   const handleEmail = (event) => {
     setEmail(event.target.value);
@@ -37,6 +43,9 @@ const SignUp = (props) => {
       .then((response) => {
         if (response) {
           props.toggle();
+          fire.auth().currentUser.updateProfile({
+            displayName: name
+          })
           toast.success("User Registered Successfully");
         }
       })
@@ -96,6 +105,21 @@ const SignUp = (props) => {
               Register your account
             </Typography>
             <ValidatorForm onSubmit={handleSignUp} className={classes.form}>
+              
+            <TextValidator
+                variant="outlined"
+                margin="normal"
+                fullWidth
+                label="Name"
+                onChange={handleName}
+                name="name"
+                value={name}
+                validators={["required"]}
+                errorMessages={["this field is required"]}
+                autoComplete="off"
+              />
+
+             
               <TextValidator
                 variant="outlined"
                 margin="normal"

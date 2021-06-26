@@ -20,6 +20,7 @@ import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import  MainListItems from "./lisItems";
 import Profile from "./Profile";
 import CalendarPage from "./CalendarPage";
+import fire from "../helpers/db"
 
 const NavBar = (props) => {
   const classes = useStyles();
@@ -37,7 +38,10 @@ const NavBar = (props) => {
 
   const handleClose = () => {
     localStorage.removeItem("user");
+    fire.auth().signOut();
     props.setUserState();
+    
+
   };  
 
   
@@ -114,7 +118,6 @@ const NavBar = (props) => {
       </Drawer>
 
   {page}
-
 
       </CssBaseline>
       
