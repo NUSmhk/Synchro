@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import clsx from "clsx";
 import {
   makeStyles,
@@ -12,32 +12,47 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField
-
+  TextField,
+  MenuItem,
 } from "@material-ui/core";
-import  AddCircleIcon from "@material-ui/icons/AddCircle";
+import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
+import fire from "../helpers/db";
 
-function CreateNewProject() {
+function CreateNewProject(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-  const [members, addMembers] = React.useState([]);
-  const [newMember, addNewMember] = React.useState("");
+  const [members, addMembers] = useState([]);
+  const [newMember, addNewMember] = useState("");
+  const [projectTitle, addProjectTitle] = useState("");
 
-  const handleAddMembers = (event) => {
-    newMember === "" ?
+  const handleProjectTitle = (event) => {
+    addProjectTitle(event.target.value);
+  };
 
-    addMembers([...members]) :
+  const handleAddMembers = () => {
+    newMember === ""
+      ? addMembers([...members])
+      : fire
+          .auth()
+          .getUserByEmail(newMember)
+          .then(() => {
+            addMembers([
+              ...members,
+              {
+                description: newMember,
+              },
+            ]);
+          })
+          .catch((error) => addMembers([...members]));
 
-    // newMember.length > 10 ? 
+    // newMember.length > 10 ?
+  };
 
-    addMembers([
-      ...members, 
-      {
-      description: newMember
-    }]) 
+  const handleNewProject = () => {
+    props.setProjTitle(projectTitle);
   };
 
   return (
@@ -49,7 +64,7 @@ function CreateNewProject() {
           <Paper className={fixedHeightPaper} justify="center">
             <Typography>Create a New Project</Typography>
 
-            <ValidatorForm className={classes.form}>
+            <ValidatorForm className={classes.form} onSubmit={handleNewProject}>
               <br />
 
               <TextValidator
@@ -57,10 +72,11 @@ function CreateNewProject() {
                 margin="normal"
                 fullWidth
                 label="Project Name"
-                name="email"
-                validators={["required", "isEmail"]}
-                errorMessages={["this field is required", "Email is not valid"]}
+                name="Project Name"
+                // validators={["required"]}
+                // errorMessages={["this field is required"]}
                 autoComplete="off"
+                onChange={handleProjectTitle}
               />
               <br />
 
@@ -70,8 +86,8 @@ function CreateNewProject() {
                     variant="outlined"
                     fullWidth
                     label="Add Group Member"
-                    validators={["required"]}
-                    errorMessages={["this field is required"]}
+                    // validators={["required"]}
+                    // errorMessages={["this field is required"]}
                     autoComplete="off"
                     onChange={(event) => {
                       addNewMember(event.target.value);
@@ -89,48 +105,39 @@ function CreateNewProject() {
                   </IconButton>
                 </Grid>
               </Grid>
-            </ValidatorForm>
-            <br></br>
-            <Typography> Member List:</Typography>
-            <br>
-            </br>
 
-            <List>
-              {members.map((task, index) => (
+              <br></br>
+              <Typography align="center"> Member List:</Typography>
+              <br></br>
 
-              <ListItem divider alignItems="flex-start">
-                <ListItemIcon>
-                  <GroupIcon></GroupIcon>
-
-                </ListItemIcon>
-                <ListItemText>
-                  <td>{index + 1}. </td>
-                  <td>{task.description}</td>
-                  </ListItemText>
-                {/* <Typography>
+              <List>
+                {members.map((task, index) => (
+                  <ListItem divider alignItems="flex-start">
+                    <ListItemIcon>
+                      <GroupIcon></GroupIcon>
+                    </ListItemIcon>
+                    <ListItemText>
+                      <td>{index + 1}. </td>
+                      <td>{task.description}</td>
+                    </ListItemText>
+                    {/* <Typography>
                   {task.description}
                 </Typography>
                  */}
-              </ListItem>
-    
-              ))
-              }
-              
-              
-               </List>
+                  </ListItem>
+                ))}
+              </List>
 
-
-
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-            >
-              Create New Project
-            </Button>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                color="primary"
+                className={classes.submit}
+              >
+                Create New Project
+              </Button>
+            </ValidatorForm>
           </Paper>
         </Grid>
       </Container>

@@ -33,7 +33,6 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 
-
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
 function CalendarPage() {
@@ -49,8 +48,6 @@ function CalendarPage() {
   const handleClose = () => {
     setOpen(false);
   };
-
-
 
   return (
     <main className={classes.content}>
@@ -79,32 +76,53 @@ function CalendarPage() {
             <TextField
               autoFocus
               margin="dense"
-              id="name"
+              id="event-name"
               label="Event Name"
               type="event"
-              fullWidth
             />
-         <TextField
-        id="datetime-local"
-        label="Event Start"
-        type="datetime-local"
-        defaultValue="2017-05-24T10:30"
-        className={classes.textField}
-        InputLabelProps={{
-          shrink: true,
-        }}
-      />
-<TextField
-        id="datetime-local"
-        label="Event End"
-        type="datetime-local"
-        defaultValue="2017-05-24T10:30"
-        className={classes.textField}
-        InputLabelProps={{
-          shrink: true,
-        }}
-      />
-      
+            <br></br>
+            <TextField
+              id="datetime-local"
+              label="Event Start"
+              type="datetime-local"
+              defaultValue="2017-05-24T10:30"
+              className={classes.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <br></br>
+            <TextField
+              id="datetime-local"
+              label="Event End"
+              type="datetime-local"
+              defaultValue="2017-05-24T10:30"
+              className={classes.textField}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <br></br>
+
+            <Grid
+              container
+              className={classes.buttons}
+              spacing={3}
+              justify="flex-end"
+            >
+              <Grid item>
+                <Button variant="contained" color="primary">
+                  {" "}
+                  ADD EVENT{" "}
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" color="primary" onClick={() => handleClose()}>
+                  {" "}
+                  CANCEL{" "}
+                </Button>
+              </Grid>
+            </Grid>
           </DialogContent>
         </Dialog>
 

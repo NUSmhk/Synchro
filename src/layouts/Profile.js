@@ -17,6 +17,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Profile() {
+  const user = fire.auth().currentUser;
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
   const [password, setPassword] = useState("");
@@ -66,14 +67,14 @@ function Profile() {
   }, [password]);
 
   const handleUpdate = () => {
-    const user = fire.auth().currentUser;
+    
 
     if (name !== "") {
       user
         .updateProfile({
           displayName: name,
         })
-        .then(() => setchangedName(name))
+        .then(() => {setchangedName(name); toast.success("Name changed successfully");})
         .catch((error) => {
           toast.error(error.message);
         });
@@ -81,14 +82,14 @@ function Profile() {
     if (email !== "") {
       user
         .updateEmail(email)
-        .then(() => setchangedEmail(email))
+        .then(() => {setchangedEmail(email); toast.success("Email changed successfully");})
         .catch((error) => toast.error(error.message));
     }
 
     if (password !== "") {
       user
         .updatePassword(password)
-        .then(() => {})
+        .then(() => {toast.success("Password changed successfully")})
         .catch((error) => toast.error(error.message));
     }
   };
