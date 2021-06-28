@@ -1,4 +1,4 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import AddToQueueIcon from "@material-ui/icons/AddToQueue";
@@ -9,17 +9,52 @@ import Profile from "./Profile";
 import CalendarPage from "./CalendarPage";
 import CreateNewProject from "./CreateNewProject";
 import MyProjects from "./MyProjects";
+import {fire, db} from "../helpers/db";
+import { Component } from "react";
 
 function MainListItems(props) {
+
+  const user = fire.auth().currentUser;
+
   const [selected, setSelected] = useState(2);
-  const [projTitle, setProjTitle] = useState([{description: "Project 1"},{description: "Project 2"},{description: "Project 3"}])
+  // const [projTitle, setProjTitle] = useState([{description: "Project 1"}])
+  const [projTitle, setProjTitle] = useState([])
 
   const handleProjTitle = (title) => {
+
+ 
+    db.collection("users").doc(user.uid).collection("projects").doc(user.uid).set({
+      proj: [...projTitle, {
+        description: title
+      }]
+    })
+
     setProjTitle([...projTitle, {
       description: title
-    } ])
+    }])
+
+    // db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
+    // setProjTitle(doc.data().proj)
+    // })
   }
 
+ 
+  useEffect(() => {
+    const handleUpdate = () => { //test
+      const user = fire.auth().currentUser;
+      db.collection("users").doc(user.id).collection("projects").doc(user.ui).get().then((doc) => {
+
+        if (doc.exists) {
+        setProjTitle(doc.data().proj);
+        console.log(doc.data().proj)
+        console.log(projTitle)
+        } else {
+
+        }
+      })
+    }
+    handleUpdate();
+  }, []);
 
   return (
     <div>

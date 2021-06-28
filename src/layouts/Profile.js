@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import fire from "../helpers/db";
+import {fire, db} from "../helpers/db";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -67,14 +67,25 @@ function Profile() {
   }, [password]);
 
   const handleUpdate = () => {
+
+    
     
 
     if (name !== "") {
+
       user
         .updateProfile({
           displayName: name,
         })
-        .then(() => {setchangedName(name); toast.success("Name changed successfully");})
+        .then(() => {setchangedName(name); 
+
+          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
+            Name: name,
+            Email: user.email
+          })
+          
+          
+          toast.success("Name changed successfully");})
         .catch((error) => {
           toast.error(error.message);
         });
@@ -82,7 +93,13 @@ function Profile() {
     if (email !== "") {
       user
         .updateEmail(email)
-        .then(() => {setchangedEmail(email); toast.success("Email changed successfully");})
+        .then(() => {setchangedEmail(email); 
+          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
+            Name: user.displayName,
+            Email: email
+          })
+          
+          toast.success("Email changed successfully");})
         .catch((error) => toast.error(error.message));
     }
 
@@ -92,6 +109,10 @@ function Profile() {
         .then(() => {toast.success("Password changed successfully")})
         .catch((error) => toast.error(error.message));
     }
+
+    
+
+
   };
 
   return (
@@ -111,7 +132,9 @@ function Profile() {
               draggable
               pauseOnHover={false}
             />
-            <Typography>Profile Page</Typography>
+            <Typography>My Profile</Typography>
+
+            
 
             <AccountCircleIcon
               className={classes.accountCircle}

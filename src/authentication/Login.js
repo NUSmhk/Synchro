@@ -12,7 +12,7 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import fire from "../helpers/db";
+import {fire} from "../helpers/db";
 import { ToastContainer, toast } from "react-toastify";
 
 const Login = (props) => {

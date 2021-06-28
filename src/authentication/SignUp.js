@@ -11,7 +11,7 @@ import {
   CardContent,
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import fire from "../helpers/db";
+import {fire, db} from "../helpers/db";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -41,12 +41,24 @@ const SignUp = (props) => {
       .auth()
       .createUserWithEmailAndPassword(email, password)
       .then((response) => {
+        const user = fire.auth().currentUser;
         if (response) {
           props.toggle();
-          fire.auth().currentUser.updateProfile({
+          user.updateProfile({
             displayName: name
           })
+          
+          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
+            Name: name,
+            Email: email
+          })
+
+
+
+          // db.collection("users").doc(user.uid).collection("")
           toast.success("User Registered Successfully");
+          
+          
         }
       })
       .catch((error) => {

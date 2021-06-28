@@ -3,7 +3,7 @@ import './App.css';
 import NavBar from './layouts/NavBar';
 import Login from './authentication/Login';
 import SignUp from './authentication/SignUp';
-import fire from "./helpers/db";
+import {fire} from "./helpers/db";
 
 
 function App() {

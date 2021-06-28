@@ -21,7 +21,7 @@ import  MainListItems from "./lisItems";
 import Profile from "./Profile";
 import CalendarPage from "./CalendarPage";
 import MyProjects from "./MyProjects";
-import fire from "../helpers/db"
+import {fire} from "../helpers/db"
 
 const NavBar = (props) => {
   const classes = useStyles();

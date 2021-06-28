@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import {
   makeStyles,
@@ -20,12 +20,30 @@ import  AddCircleIcon from "@material-ui/icons/AddCircle";
 import WorkOutlineIcon from '@material-ui/icons/WorkOutline';
 import GroupIcon from "@material-ui/icons/Group";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import fire from "../helpers/db";
+import {fire, db} from "../helpers/db";
 
 function MyProjects(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+  
 
+  const [projects, setProjects] = useState([]);
+ 
+
+  useEffect(() => {
+    const handleUpdate = () => { //test
+      const user = fire.auth().currentUser;
+      db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
+        if (doc.exists) {
+          setProjects(doc.data().proj);
+   
+          } else {
+  
+          }
+      })
+    }
+    handleUpdate();
+  }, []) ;
 
   return (
     <main className={classes.content}>
@@ -37,27 +55,53 @@ function MyProjects(props) {
             <Typography>My Projects</Typography>
 
             <List>
-              {props.projTitle.map((task, index) => (
+              
+              {
+
+              projects.map((task, index) => (
                   
                  
-              <ListItem divider alignItems="flex-start" button>
-                <ListItemIcon>
-                  <WorkOutlineIcon></WorkOutlineIcon>
-
-                </ListItemIcon>
-                <ListItemText>
-                  <td>{task.description}</td>
-                  </ListItemText>
-           
-              </ListItem>
-            
+                <ListItem divider alignItems="flex-start" button>
+                  <ListItemIcon>
+                    <WorkOutlineIcon></WorkOutlineIcon>
+  
+                  </ListItemIcon>
+                  <ListItemText>
+                    <td>{task.description}</td>
+                    </ListItemText>
+             
+                </ListItem>
+              
+      
+                ))
+              
+              // db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
+                
+              //   doc.data().proj.map((task) => (
+                  
+                 
+              //     <ListItem divider alignItems="flex-start" button>
+              //       <ListItemIcon>
+              //         <WorkOutlineIcon></WorkOutlineIcon>
     
-              ))
+              //       </ListItemIcon>
+              //       <ListItemText>
+              //         <td>{task.description}</td>
+              //         </ListItemText>
+               
+              //     </ListItem>
+                
+        
+              //     ))
+
+              // })
+              
+              
+              
               }
               
               
                </List>
-
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
@@ -24,7 +24,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import MainListItems from "./lisItems";
 import Calendar from "react-calendar";
-import CalEvents from "./CalEvents";
+import {fire, db} from "../helpers/db";
 import BigCalendar from "react-big-calendar-like-google";
 import moment from "moment";
 import {
@@ -33,21 +33,82 @@ import {
   KeyboardDatePicker,
 } from "@material-ui/pickers";
 
+
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
 function CalendarPage() {
   const classes = useStyles();
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-
   const [open, setOpen] = useState(false);
+
+  const [event, setEvents] = useState([])
+  
+  const [eventName, setEventName] = useState("")
+  const [datetime1, setDatetime1] = useState("")
+  const [datetime2, setDatetime2] = useState("")
+
+ 
+
+  const handleEventName = (event) => {
+    setEventName(event.target.value)
+  }
+
+  const handleDatetime1 = (event) => {
+    setDatetime1(event.target.value)
+  }
+
+  const handleDatetime2 = (event) => {
+    setDatetime2(event.target.value)
+  }
+
 
   const handleClickOpen = () => {
     setOpen(true);
-  };
+
+ 
+    
+    // db.collection("users").doc("user1").get().then((doc) => {
+    //   console.log("data:", doc.data().Name)
+    // })
+  }
+  
+  const handleAddEvent = () => {
+
+    // db.collection("users").doc(user.uid).collection("Events").doc(user.uid).set({
+    //   events: [...event,{
+    //     title: eventName,
+    //     bgColor: "#b0e0e6",
+    //     start: new Date(datetime1),
+    //     end: new Date(datetime2)
+    //   }]
+    // })
+
+    setEvents([...event,{
+      title: eventName,
+      bgColor: "#b0e0e6",
+      start: new Date(datetime1),
+      end: new Date(datetime2)
+    }] )  
+  }
+  
 
   const handleClose = () => {
     setOpen(false);
   };
+
+  // useEffect(() => {
+  //   const handleUpdate = () => { //test
+  //     const user = fire.auth().currentUser;
+  //     db.collection("users").doc(user.uid).collection("Events").doc(user.uid).get().then((doc) => {
+
+  //       if (doc.exists) {
+  //         setEvents(doc.data().events);
+  //         } else {
+  
+  //         }      
+  //     })
+  //   }
+  //   handleUpdate();
+  // }, []);
 
   return (
     <main className={classes.content}>
@@ -79,14 +140,16 @@ function CalendarPage() {
               id="event-name"
               label="Event Name"
               type="event"
+              onChange={handleEventName}
             />
             <br></br>
             <TextField
               id="datetime-local"
               label="Event Start"
               type="datetime-local"
-              defaultValue="2017-05-24T10:30"
+              defaultValue={new Date().now}
               className={classes.textField}
+              onChange={handleDatetime1}
               InputLabelProps={{
                 shrink: true,
               }}
@@ -96,7 +159,8 @@ function CalendarPage() {
               id="datetime-local"
               label="Event End"
               type="datetime-local"
-              defaultValue="2017-05-24T10:30"
+              defaultValue={new Date().now}
+              onChange={handleDatetime2}
               className={classes.textField}
               InputLabelProps={{
                 shrink: true,
@@ -111,7 +175,7 @@ function CalendarPage() {
               justify="flex-end"
             >
               <Grid item>
-                <Button variant="contained" color="primary">
+                <Button variant="contained" color="primary" onClick={handleAddEvent}>
                   {" "}
                   ADD EVENT{" "}
                 </Button>
@@ -137,25 +201,23 @@ function CalendarPage() {
       <Paper className={classes.paper}>
         <BigCalendar
           selectable
-          events={CalEvents()}
+          events={event}
           defaultView="week"
           scrollToTime={new Date(1970, 1, 1, 6)}
-          defaultDate={new Date(2015, 3, 12)}
+          defaultDate={new Date()}
           onSelectEvent={(event) => alert(event.title)}
-          onSelectSlot={(slotInfo) =>
-            alert(
-              `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
-                `\nend: ${slotInfo.end.toLocaleString()}` +
-                `\naction: ${slotInfo.action}`
-            )
-          }
+          // onSelectSlot={(slotInfo) =>
+          //   alert(
+          //     `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
+          //       `\nend: ${slotInfo.end.toLocaleString()}` +
+          //       `\naction: ${slotInfo.action}`
+          //   )
+          // }
         ></BigCalendar>
       </Paper>
     </main>
   );
 }
-
-const drawerWidth = 240;
 
 const useStyles = makeStyles((theme) => ({
   root: {

@@ -18,7 +18,7 @@ import {
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import fire from "../helpers/db";
+import {fire, db} from "../helpers/db";
 
 function CreateNewProject(props) {
   const classes = useStyles();
@@ -35,20 +35,34 @@ function CreateNewProject(props) {
   const handleAddMembers = () => {
     newMember === ""
       ? addMembers([...members])
-      : fire
-          .auth()
-          .getUserByEmail(newMember)
-          .then(() => {
-            addMembers([
+      :           addMembers([
               ...members,
               {
                 description: newMember,
               },
-            ]);
-          })
-          .catch((error) => addMembers([...members]));
+            ])
+    // if (newMember === "") {
+    //   addMembers([...members])
+    // } else {
+    //   db.collectionGroup("userInfo").where('Emmail', '==', newMember).get().then((querySnapshot) => {
+    //     querySnapshot.forEach((doc) => {
+    //       if (doc.exists) {
+    //         addMembers([
+    //           ...members,
+    //           {
+    //             description: newMember
+    //           }
+    //         ])
+    //       } else {
+    //         addMembers([...members])
+    //       }
+    //     })
 
-    // newMember.length > 10 ?
+
+    //   })
+    // }
+
+
   };
 
   const handleNewProject = () => {
