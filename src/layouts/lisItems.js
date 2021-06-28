@@ -46,8 +46,6 @@ function MainListItems(props) {
 
         if (doc.exists) {
         setProjTitle(doc.data().proj);
-        console.log(doc.data().proj)
-        console.log(projTitle)
         } else {
 
         }
