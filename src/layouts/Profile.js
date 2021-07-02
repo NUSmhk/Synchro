@@ -69,8 +69,6 @@ function Profile() {
   const handleUpdate = () => {
 
     
-    
-
     if (name !== "") {
 
       user
@@ -79,9 +77,8 @@ function Profile() {
         })
         .then(() => {setchangedName(name); 
 
-          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
-            Name: name,
-            Email: user.email
+          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).update({
+            Name: name
           })
           
           
@@ -94,8 +91,7 @@ function Profile() {
       user
         .updateEmail(email)
         .then(() => {setchangedEmail(email); 
-          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
-            Name: user.displayName,
+          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).update({
             Email: email
           })
           

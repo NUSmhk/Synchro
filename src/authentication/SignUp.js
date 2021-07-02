@@ -53,6 +53,10 @@ const SignUp = (props) => {
             Email: email
           })
 
+          db.collection("users").doc(user.uid).collection("projects").doc(user.uid).set({})
+
+          db.collection("users").doc(user.uid).collection("Events").doc(user.uid).set({})
+
 
 
           // db.collection("users").doc(user.uid).collection("")

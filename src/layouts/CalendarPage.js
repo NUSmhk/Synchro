@@ -24,7 +24,7 @@ import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import MainListItems from "./lisItems";
 import Calendar from "react-calendar";
-import {fire, db} from "../helpers/db";
+import { fire, db } from "../helpers/db";
 import BigCalendar from "react-big-calendar-like-google";
 import moment from "moment";
 import {
@@ -32,83 +32,119 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from "@material-ui/pickers";
-
+import firebase from "firebase";
+import { findAllByDisplayValue } from "@testing-library/react";
+import { EmojiObjectsRounded } from "@material-ui/icons";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
 function CalendarPage() {
+  const user = fire.auth().currentUser;
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const [eventName, setEventName] = useState("");
+  const [datetime1, setDatetime1] = useState("");
+  const [datetime2, setDatetime2] = useState("");
 
-  const [event, setEvents] = useState([])
-  
-  const [eventName, setEventName] = useState("")
-  const [datetime1, setDatetime1] = useState("")
-  const [datetime2, setDatetime2] = useState("")
+  const [event, setEvents] = useState([
+    // {
+    //   title: "testEvent1",
+    //   bgColor: "b0e0e6",
+    //   start: new Date(2021, 6, 1, 20, 0, 0),
+    //   end: new Date(2021, 6, 1, 22, 0, 0),
+    // },
+  ]);
 
- 
+  const handleUpdate = () => {
+    //test
+    const user = fire.auth().currentUser;
+    db.collection("users")
+      .doc(user.uid)
+      .collection("Events")
+      .doc(user.uid)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const fireEvent = doc.data().events
+
+          if (fireEvent !== undefined) {
+
+          fireEvent.map((obj) => {
+            obj.start = obj.start.toDate();
+             obj.end = obj.end.toDate();
+          })
+          setEvents(fireEvent);
+        }
+        } else {
+        }
+      });
+  };
 
   const handleEventName = (event) => {
-    setEventName(event.target.value)
-  }
+    setEventName(event.target.value);
+  };
 
   const handleDatetime1 = (event) => {
-    setDatetime1(event.target.value)
-  }
+    setDatetime1(event.target.value);
+  };
 
   const handleDatetime2 = (event) => {
-    setDatetime2(event.target.value)
-  }
-
+    setDatetime2(event.target.value);
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
 
- 
-    
     // db.collection("users").doc("user1").get().then((doc) => {
-    //   console.log("data:", doc.data().Name)
+    //   console.log("data:", doc.data().Name)S
     // })
+  };
+
+  function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
-  
   const handleAddEvent = () => {
-
-    // db.collection("users").doc(user.uid).collection("Events").doc(user.uid).set({
-    //   events: [...event,{
-    //     title: eventName,
-    //     bgColor: "#b0e0e6",
-    //     start: new Date(datetime1),
-    //     end: new Date(datetime2)
-    //   }]
-    // })
-
-    setEvents([...event,{
-      title: eventName,
-      bgColor: "#b0e0e6",
-      start: new Date(datetime1),
-      end: new Date(datetime2)
-    }] )  
-  }
-  
+    const user = fire.auth().currentUser;
+    db.collection("users")
+      .doc(user.uid)
+      .collection("Events")
+      .doc(user.uid)
+      .update({
+        events: firebase.firestore.FieldValue.arrayUnion({
+          title: eventName,
+          bgColor: getRandomColor(),
+          start: new Date(datetime1),
+          end: new Date(datetime2),
+        }),
+      });
+      handleUpdate();
+    setOpen(false);
+    
+  };
 
   const handleClose = () => {
     setOpen(false);
   };
 
-  // useEffect(() => {
-  //   const handleUpdate = () => { //test
-  //     const user = fire.auth().currentUser;
-  //     db.collection("users").doc(user.uid).collection("Events").doc(user.uid).get().then((doc) => {
+  useEffect(() => {
+    
+    handleUpdate();
+  }, []);
 
-  //       if (doc.exists) {
-  //         setEvents(doc.data().events);
-  //         } else {
-  
-  //         }      
-  //     })
-  //   }
-  //   handleUpdate();
-  // }, []);
+  const handleImport = () => {
+    setEvents(
+      event.map((obj) => {
+        obj.start = obj.start.toDate();
+         obj.end = obj.end.toDate();
+      })
+    );
+    console.log(event);
+  };
 
   return (
     <main className={classes.content}>
@@ -147,7 +183,7 @@ function CalendarPage() {
               id="datetime-local"
               label="Event Start"
               type="datetime-local"
-              defaultValue={new Date().now}
+              defaultValue={new Date()}
               className={classes.textField}
               onChange={handleDatetime1}
               InputLabelProps={{
@@ -159,7 +195,7 @@ function CalendarPage() {
               id="datetime-local"
               label="Event End"
               type="datetime-local"
-              defaultValue={new Date().now}
+              defaultValue={new Date()}
               onChange={handleDatetime2}
               className={classes.textField}
               InputLabelProps={{
@@ -175,13 +211,21 @@ function CalendarPage() {
               justify="flex-end"
             >
               <Grid item>
-                <Button variant="contained" color="primary" onClick={handleAddEvent}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleAddEvent}
+                >
                   {" "}
                   ADD EVENT{" "}
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary" onClick={() => handleClose()}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleClose()}
+                >
                   {" "}
                   CANCEL{" "}
                 </Button>
@@ -191,7 +235,7 @@ function CalendarPage() {
         </Dialog>
 
         <Grid item>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={handleImport}>
             {" "}
             Import Calendar{" "}
           </Button>

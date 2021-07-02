@@ -11,6 +11,7 @@ import CreateNewProject from "./CreateNewProject";
 import MyProjects from "./MyProjects";
 import {fire, db} from "../helpers/db";
 import { Component } from "react";
+import firebase from 'firebase';
 
 function MainListItems(props) {
 
@@ -18,41 +19,21 @@ function MainListItems(props) {
 
   const [selected, setSelected] = useState(2);
   // const [projTitle, setProjTitle] = useState([{description: "Project 1"}])
-  const [projTitle, setProjTitle] = useState([])
+  
 
   const handleProjTitle = (title) => {
 
  
-    db.collection("users").doc(user.uid).collection("projects").doc(user.uid).set({
-      proj: [...projTitle, {
-        description: title
-      }]
+    db.collection("users").doc(user.uid).collection("projects").doc(user.uid).update({
+      proj: firebase.firestore.FieldValue.arrayUnion({description: title})
     })
 
-    setProjTitle([...projTitle, {
-      description: title
-    }])
-
+  
     // db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
     // setProjTitle(doc.data().proj)
     // })
   }
 
- 
-  useEffect(() => {
-    const handleUpdate = () => { //test
-      const user = fire.auth().currentUser;
-      db.collection("users").doc(user.id).collection("projects").doc(user.ui).get().then((doc) => {
-
-        if (doc.exists) {
-        setProjTitle(doc.data().proj);
-        } else {
-
-        }
-      })
-    }
-    handleUpdate();
-  }, []);
 
   return (
     <div>
@@ -105,7 +86,7 @@ function MainListItems(props) {
         button
         onClick={() => {
           setSelected(4);
-          props.setPages(<MyProjects projTitle={projTitle}/>);
+          props.setPages(<MyProjects/>);
           props.setTitles("My Projects");
         }}
         selected={selected === 4}
