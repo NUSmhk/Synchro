@@ -11,9 +11,11 @@ import {
   CardContent,
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import {fire, db} from "../helpers/db";
+import { fire, db } from "../helpers/db";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import firebase from "firebase";
+import Toast from "../Components/Toast";
 
 const SignUp = (props) => {
   const classes = useStyles();
@@ -21,7 +23,6 @@ const SignUp = (props) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
-
 
   const handleName = (event) => {
     setName(event.target.value);
@@ -45,24 +46,40 @@ const SignUp = (props) => {
         if (response) {
           props.toggle();
           user.updateProfile({
-            displayName: name
-          })
-          
-          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).set({
-            Name: name,
-            Email: email
-          })
+            displayName: name,
+          });
 
-          db.collection("users").doc(user.uid).collection("projects").doc(user.uid).set({})
+          db.collection("users")
+            .doc(user.uid)
+            .collection("userInfo")
+            .doc(user.uid)
+            .set({
+              Name: name,
+              Email: email,
+            });
 
-          db.collection("users").doc(user.uid).collection("Events").doc(user.uid).set({})
+          db.collection("users")
+            .doc(user.uid)
+            .collection("projects")
+            .doc(user.uid)
+            .set({});
 
+          db.collection("users")
+            .doc(user.uid)
+            .collection("Events")
+            .doc(user.uid)
+            .set({});
 
+          db.collection("allEmail")
+            .doc("emails")
+            .update({
+              emails: firebase.firestore.FieldValue.arrayUnion({
+                Email: email,
+              }),
+            });
 
           // db.collection("users").doc(user.uid).collection("")
           toast.success("User Registered Successfully");
-          
-          
         }
       })
       .catch((error) => {
@@ -92,21 +109,12 @@ const SignUp = (props) => {
       ValidatorForm.removeValidationRule("isPasswordMatch");
     };
   }, [password]);
+
   return (
     <Container component="main" maxWidth="xs">
       <Card className={classes.card}>
         <CardContent>
-          <ToastContainer
-            position="top-center"
-            autoClose={3000}
-            hideProgressBar
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover={false}
-          />
+          <Toast position="top-center"></Toast>
           <CssBaseline />
           <div className={classes.paper}>
             <img
@@ -121,8 +129,7 @@ const SignUp = (props) => {
               Register your account
             </Typography>
             <ValidatorForm onSubmit={handleSignUp} className={classes.form}>
-              
-            <TextValidator
+              <TextValidator
                 variant="outlined"
                 margin="normal"
                 fullWidth
@@ -135,7 +142,6 @@ const SignUp = (props) => {
                 autoComplete="off"
               />
 
-             
               <TextValidator
                 variant="outlined"
                 margin="normal"

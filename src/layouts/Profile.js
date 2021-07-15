@@ -8,12 +8,12 @@ import {
   Grid,
   Paper,
   Card,
-  CardContent,
 } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import {fire, db} from "../helpers/db";
-import { ToastContainer, toast } from "react-toastify";
+import { fire, db } from "../helpers/db";
+import Toast from "../Components/Toast";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 function Profile() {
@@ -25,12 +25,6 @@ function Profile() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
 
-  // const currUserName = JSON.parse(localStorage.getItem("user")).name;
-  // const currUserEmail = JSON.parse(localStorage.getItem("user")).email;
-  // const currUserId = JSON.parse(localStorage.getItem("user")).userId;
-
-  // fire.auth().currentUser.displayName
-  // fire.auth().currentUser.email
   const [changedName, setchangedName] = useState(
     fire.auth().currentUser.displayName
   );
@@ -67,22 +61,24 @@ function Profile() {
   }, [password]);
 
   const handleUpdate = () => {
-
-    
     if (name !== "") {
-
       user
         .updateProfile({
           displayName: name,
         })
-        .then(() => {setchangedName(name); 
+        .then(() => {
+          setchangedName(name);
 
-          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).update({
-            Name: name
-          })
-          
-          
-          toast.success("Name changed successfully");})
+          db.collection("users")
+            .doc(user.uid)
+            .collection("userInfo")
+            .doc(user.uid)
+            .update({
+              Name: name,
+            });
+
+          toast.success("Name changed successfully");
+        })
         .catch((error) => {
           toast.error(error.message);
         });
@@ -90,25 +86,29 @@ function Profile() {
     if (email !== "") {
       user
         .updateEmail(email)
-        .then(() => {setchangedEmail(email); 
-          db.collection("users").doc(user.uid).collection("userInfo").doc(user.uid).update({
-            Email: email
-          })
-          
-          toast.success("Email changed successfully");})
+        .then(() => {
+          setchangedEmail(email);
+          db.collection("users")
+            .doc(user.uid)
+            .collection("userInfo")
+            .doc(user.uid)
+            .update({
+              Email: email,
+            });
+
+          toast.success("Email changed successfully");
+        })
         .catch((error) => toast.error(error.message));
     }
 
     if (password !== "") {
       user
         .updatePassword(password)
-        .then(() => {toast.success("Password changed successfully")})
+        .then(() => {
+          toast.success("Password changed successfully");
+        })
         .catch((error) => toast.error(error.message));
     }
-
-    
-
-
   };
 
   return (
@@ -117,20 +117,8 @@ function Profile() {
       <Container maxWidth="xs" className={classes.container}>
         <Grid>
           <Card className={fixedHeightPaper} justify="center">
-            <ToastContainer
-              position="top-right"
-              autoClose={3000}
-              hideProgressBar
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover={false}
-            />
+            <Toast position="top-right"></Toast>
             <Typography>My Profile</Typography>
-
-            
 
             <AccountCircleIcon
               className={classes.accountCircle}

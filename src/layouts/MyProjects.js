@@ -3,47 +3,46 @@ import clsx from "clsx";
 import {
   makeStyles,
   Container,
-  Button,
   Typography,
   Grid,
   Paper,
-  IconButton,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField,
-  MenuItem
-
 } from "@material-ui/core";
-import  AddCircleIcon from "@material-ui/icons/AddCircle";
-import WorkOutlineIcon from '@material-ui/icons/WorkOutline';
-import GroupIcon from "@material-ui/icons/Group";
-import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import {fire, db} from "../helpers/db";
+import WorkOutlineIcon from "@material-ui/icons/WorkOutline";
+import { fire, db } from "../helpers/db";
+import Toast from "../Components/Toast";
 
-function MyProjects(props) {
+function MyProjects() {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-  
 
   const [projects, setProjects] = useState([]);
- 
 
   useEffect(() => {
-    const handleUpdate = () => { //test
+    const handleUpdate = () => {
+      //test
       const user = fire.auth().currentUser;
-      db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
-        if (doc.exists) {
-          setProjects(doc.data().proj);
-   
+      db.collection("users")
+        .doc(user.uid)
+        .collection("projects")
+        .doc(user.uid)
+        .get()
+        .then((doc) => {
+          if (doc.exists) {
+            const fireProj = doc.data().proj;
+
+            if (fireProj !== undefined) {
+              setProjects(doc.data().proj);
+            }
           } else {
-  
           }
-      })
-    }
+        });
+    };
     handleUpdate();
-  }, []) ;
+  }, []);
 
   return (
     <main className={classes.content}>
@@ -52,59 +51,21 @@ function MyProjects(props) {
         {/* Chart */}
         <Grid>
           <Paper className={fixedHeightPaper} justify="center">
+            <Toast position="top-right"></Toast>
             <Typography>My Projects</Typography>
 
             <List>
-              
-              {
-
-              projects.map((task, index) => (
-                  
-                 
+              {projects.map((task, index) => (
                 <ListItem divider alignItems="flex-start" button>
                   <ListItemIcon>
                     <WorkOutlineIcon></WorkOutlineIcon>
-  
                   </ListItemIcon>
                   <ListItemText>
                     <td>{task.description}</td>
-                    </ListItemText>
-             
+                  </ListItemText>
                 </ListItem>
-              
-      
-                ))
-              
-              // db.collection("users").doc(user.uid).collection("projects").doc(user.uid).get().then((doc) => {
-                
-              //   doc.data().proj.map((task) => (
-                  
-                 
-              //     <ListItem divider alignItems="flex-start" button>
-              //       <ListItemIcon>
-              //         <WorkOutlineIcon></WorkOutlineIcon>
-    
-              //       </ListItemIcon>
-              //       <ListItemText>
-              //         <td>{task.description}</td>
-              //         </ListItemText>
-               
-              //     </ListItem>
-                
-        
-              //     ))
-
-              // })
-              
-              
-              
-              }
-              
-              
-               </List>
-
-
-
+              ))}
+            </List>
           </Paper>
         </Grid>
       </Container>

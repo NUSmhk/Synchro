@@ -11,24 +11,18 @@ import {
   Typography,
   Divider,
   IconButton,
-  Container,
-  Grid, 
-  Paper
 } from "@material-ui/core";
 import MenuIcon from "@material-ui/icons/Menu";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import  MainListItems from "./lisItems";
-import Profile from "./Profile";
+import MainListItems from "./lisItems";
 import CalendarPage from "./CalendarPage";
-import MyProjects from "./MyProjects";
-import {fire} from "../helpers/db"
+import { fire } from "../helpers/db";
 
 const NavBar = (props) => {
   const classes = useStyles();
   const [openD, setOpen] = React.useState(true);
-  const [page, setPage] = React.useState(<CalendarPage/>);
-  const [title, setTitle] = React.useState("My Calendar")
-
+  const [page, setPage] = React.useState(<CalendarPage />);
+  const [title, setTitle] = React.useState("My Calendar");
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -38,92 +32,88 @@ const NavBar = (props) => {
   };
 
   const handleClose = () => {
-    // localStorage.removeItem("user");
     fire.auth().signOut();
     props.setUserState();
-    
-
-  };  
-
-  
+  };
 
   return (
     <div className={classes.root}>
       <CssBaseline>
+        <AppBar
+          position="absolute"
+          className={clsx(classes.appBar, openD && classes.appBarShift)}
+        >
+          <Toolbar className={classes.toolbar}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              className={clsx(
+                classes.menuButton,
+                openD && classes.menuButtonHidden
+              )}
+            >
+              <MenuIcon />
+            </IconButton>
 
-      <AppBar
-        position="absolute"
-        className={clsx(classes.appBar, openD && classes.appBarShift)}
-      >
-        <Toolbar className={classes.toolbar}>
+            <Typography
+              component="h1"
+              variant="h6"
+              color="inherit"
+              className={classes.title}
+            >
+              {title}
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            className={clsx(
-              classes.menuButton,
-              openD && classes.menuButtonHidden
-            )}
-          >
-            <MenuIcon />
-          </IconButton>
-
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            className={classes.title}
-          >
-          {title}
-          </Typography>
-          
-        </Toolbar>
-      </AppBar>
-
-      <Drawer
-        variant="permanent"
-        classes={{
-          paper: clsx(classes.drawerPaper, !openD && classes.drawerPaperClose),
-        }}
-        open={openD}
-      >
-
-
-        <div className={classes.toolbarIcon}>
-          
-        <img
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: clsx(
+              classes.drawerPaper,
+              !openD && classes.drawerPaperClose
+            ),
+          }}
+          open={openD}
+        >
+          <div className={classes.toolbarIcon}>
+            <img
               src={"/logo3.jpg"}
               alt=""
               style={{
                 height: 70,
                 marginTop: -5,
-                paddingRight: 10
-
+                paddingRight: 10,
               }}
             />
-          <IconButton onClick={handleDrawerClose}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </div>
+            <IconButton onClick={handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </div>
 
-        <Divider />
-        <List>{<MainListItems page={page} setPages={setPage} title={title} setTitles={setTitle}/>}</List>
-        <Divider />
+          <Divider />
+          <List>
+            {
+              <MainListItems
+                page={page}
+                setPages={setPage}
+                title={title}
+                setTitles={setTitle}
+              />
+            }
+          </List>
+          <Divider />
 
-        <Button variant="contained" color="primary" onClick={handleClose}>
-          Logout
-        </Button>
+          <Button variant="contained" color="primary" onClick={handleClose}>
+            Logout
+          </Button>
+        </Drawer>
 
-      </Drawer>
-
-  {page}
-
+        {page}
       </CssBaseline>
-      
     </div>
-    
   );
 };
 

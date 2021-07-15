@@ -12,13 +12,13 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField,
-  MenuItem,
 } from "@material-ui/core";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import {fire, db} from "../helpers/db";
+import { fire, db } from "../helpers/db";
+import Toast from "../Components/Toast";
+import { toast } from "react-toastify";
 
 function CreateNewProject(props) {
   const classes = useStyles();
@@ -33,14 +33,21 @@ function CreateNewProject(props) {
   };
 
   const handleAddMembers = () => {
+    if (newMember === "") {
+      addMembers([...members]);
+      toast.error(
+        "Please fill in Email of a Group Member that you want to add"
+      );
+    }
+
     newMember === ""
       ? addMembers([...members])
-      :           addMembers([
-              ...members,
-              {
-                description: newMember,
-              },
-            ])
+      : addMembers([
+          ...members,
+          {
+            description: newMember,
+          },
+        ]);
     // if (newMember === "") {
     //   addMembers([...members])
     // } else {
@@ -58,15 +65,40 @@ function CreateNewProject(props) {
     //       }
     //     })
 
-
     //   })
     // }
-
-
   };
 
   const handleNewProject = () => {
-    props.setProjTitle(projectTitle);
+    var found;
+
+    const user = fire.auth().currentUser;
+    db.collection("users")
+      .doc(user.uid)
+      .collection("projects")
+      .doc(user.uid)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const fireProj = doc.data().proj;
+
+          if (fireProj !== undefined) {
+            found = fireProj.find(
+              (element) => element === { description: projectTitle }
+            );
+          }
+        }
+      });
+
+    if (projectTitle !== "") {
+      if (found !== undefined) {
+        props.setProjTitle(projectTitle);
+      } else {
+        toast.error("This Project Name already exists");
+      }
+    } else {
+      toast.error("Please fill in the Project Name");
+    }
   };
 
   return (
@@ -76,6 +108,7 @@ function CreateNewProject(props) {
         {/* Chart */}
         <Grid>
           <Paper className={fixedHeightPaper} justify="center">
+            <Toast></Toast>
             <Typography>Create a New Project</Typography>
 
             <ValidatorForm className={classes.form} onSubmit={handleNewProject}>

@@ -12,14 +12,14 @@ import {
   CircularProgress,
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import {fire} from "../helpers/db";
+import { fire } from "../helpers/db";
 import { ToastContainer, toast } from "react-toastify";
+import Toast from "../Components/Toast";
 
 const Login = (props) => {
   const classes = useStyles();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  //   const [rememberme, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleEmail = (event) => {
@@ -28,9 +28,7 @@ const Login = (props) => {
   const handlePassword = (event) => {
     setPassword(event.target.value);
   };
-  //   const handleCheck = (event) => {
-  //     setRememberMe(event.target.checked);
-  //   };
+
   const handlerLogin = () => {
     setLoading(true);
     fire
@@ -38,14 +36,6 @@ const Login = (props) => {
       .signInWithEmailAndPassword(email, password)
       .then((response) => {
         const { user } = response;
-        // const data = {
-        //   userId: user.uid,
-        //   email: user.email,
-        //   name: user.displayName
-        // };
-        // localStorage.setItem("user", JSON.stringify(data));
-        // const storage = localStorage.getItem("user");
-        // const loggedInUser = storage !== null ? JSON.parse(storage) : null;
         props.loggedIn(user);
         setLoading(false);
       })
@@ -58,17 +48,7 @@ const Login = (props) => {
     <Container component="main" maxWidth="xs">
       <Card className={classes.card}>
         <CardContent>
-          <ToastContainer
-            position="top-center"
-            autoClose={3000}
-            hideProgressBar
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover={false}
-          />
+          <Toast position="top-center"></Toast>
           <CssBaseline />
           <div className={classes.paper}>
             <img
@@ -118,7 +98,7 @@ const Login = (props) => {
                 autoComplete="off"
                 required
               />
-   
+
               {loading ? (
                 <CircularProgress
                   color="primary"
@@ -139,7 +119,7 @@ const Login = (props) => {
               >
                 LOGIN
               </Button>
-        
+
               <Grid container>
                 <Grid item>
                   <Link
@@ -182,7 +162,6 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: "20px",
     paddingRight: "20px",
     paddingBottom: "20px",
-    // background: "#262626",
   },
   pointer: {
     cursor: "pointer",
