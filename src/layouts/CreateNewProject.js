@@ -32,46 +32,28 @@ function CreateNewProject(props) {
     addProjectTitle(event.target.value);
   };
 
+  //To handle adding members in project creation
   const handleAddMembers = () => {
+
+    //error handling for members, need to add checks for existence of members
     if (newMember === "") {
       addMembers([...members]);
       toast.error(
         "Please fill in Email of a Group Member that you want to add"
       );
+    } else {
+      addMembers([
+        ...members,
+        {
+          description: newMember,
+        },
+      ]);
     }
-
-    newMember === ""
-      ? addMembers([...members])
-      : addMembers([
-          ...members,
-          {
-            description: newMember,
-          },
-        ]);
-    // if (newMember === "") {
-    //   addMembers([...members])
-    // } else {
-    //   db.collectionGroup("userInfo").where('Emmail', '==', newMember).get().then((querySnapshot) => {
-    //     querySnapshot.forEach((doc) => {
-    //       if (doc.exists) {
-    //         addMembers([
-    //           ...members,
-    //           {
-    //             description: newMember
-    //           }
-    //         ])
-    //       } else {
-    //         addMembers([...members])
-    //       }
-    //     })
-
-    //   })
-    // }
   };
 
+  //To add into firebase under user's project when submit button is pressed
   const handleNewProject = () => {
     var found;
-
     const user = fire.auth().currentUser;
     db.collection("users")
       .doc(user.uid)
@@ -79,6 +61,7 @@ function CreateNewProject(props) {
       .doc(user.uid)
       .get()
       .then((doc) => {
+        //To check for duplicated project name
         if (doc.exists) {
           const fireProj = doc.data().proj;
 
@@ -90,6 +73,7 @@ function CreateNewProject(props) {
         }
       });
 
+    //Error handling for project title input
     if (projectTitle !== "") {
       if (found !== undefined) {
         props.setProjTitle(projectTitle);

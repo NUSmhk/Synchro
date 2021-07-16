@@ -37,6 +37,8 @@ const SignUp = (props) => {
   const handleConfirmPassowerd = (event) => {
     setConfirmPassword(event.target.value);
   };
+
+  //everything done when registration is successful
   const handleSignUp = () => {
     fire
       .auth()
@@ -45,10 +47,13 @@ const SignUp = (props) => {
         const user = fire.auth().currentUser;
         if (response) {
           props.toggle();
+
+          //Update user name in firestore
           user.updateProfile({
             displayName: name,
           });
 
+          //Update user info which is name + email
           db.collection("users")
             .doc(user.uid)
             .collection("userInfo")
@@ -58,18 +63,21 @@ const SignUp = (props) => {
               Email: email,
             });
 
+          //Set empty array for projects in firestore
           db.collection("users")
             .doc(user.uid)
             .collection("projects")
             .doc(user.uid)
             .set({});
 
+          //Set empty array for events for user calendar in firestore
           db.collection("users")
             .doc(user.uid)
             .collection("Events")
             .doc(user.uid)
             .set({});
 
+          //To set collection of all emails/but need to find a way to update them with profile updates
           db.collection("allEmail")
             .doc("emails")
             .update({
@@ -77,8 +85,7 @@ const SignUp = (props) => {
                 Email: email,
               }),
             });
-
-          // db.collection("users").doc(user.uid).collection("")
+            
           toast.success("User Registered Successfully");
         }
       })
@@ -98,6 +105,7 @@ const SignUp = (props) => {
       });
   };
 
+  //To have custom validation check of confirming passwords for validation form
   useEffect(() => {
     ValidatorForm.addValidationRule("isPasswordMatch", (value) => {
       if (value !== password) {

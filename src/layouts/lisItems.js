@@ -14,9 +14,10 @@ import firebase from "firebase";
 
 function MainListItems(props) {
   const user = fire.auth().currentUser;
-
+  //State used to set different pages (components) when buttons on left bar are clicked
   const [selected, setSelected] = useState(2);
 
+  //Passed down as props to CreateNewProject, to store title in firestore
   const handleProjTitle = (title) => {
     db.collection("users")
       .doc(user.uid)

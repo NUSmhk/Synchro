@@ -48,6 +48,7 @@ function Profile() {
     setConfirmPassword(event.target.value);
   };
 
+  //Custom validation check for password confirmation
   useEffect(() => {
     ValidatorForm.addValidationRule("isPasswordMatch", (value) => {
       if (value !== password) {
@@ -60,8 +61,13 @@ function Profile() {
     };
   }, [password]);
 
+  //When form is submitted after filling in profile update
   const handleUpdate = () => {
+
+    //Error handling for profile name
     if (name !== "") {
+
+      //Update user's name in firestore
       user
         .updateProfile({
           displayName: name,
@@ -83,7 +89,10 @@ function Profile() {
           toast.error(error.message);
         });
     }
+    //Error handling for email
     if (email !== "") {
+
+      //Update user's email in firestore
       user
         .updateEmail(email)
         .then(() => {
@@ -101,6 +110,7 @@ function Profile() {
         .catch((error) => toast.error(error.message));
     }
 
+    //Error handling for password
     if (password !== "") {
       user
         .updatePassword(password)

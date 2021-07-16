@@ -21,6 +21,7 @@ function MyProjects() {
 
   const [projects, setProjects] = useState([]);
 
+  //To load My Projects list everytime component loads, using backend's storage of list of projs
   useEffect(() => {
     const handleUpdate = () => {
       //test

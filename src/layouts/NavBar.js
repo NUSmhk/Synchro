@@ -31,6 +31,7 @@ const NavBar = (props) => {
     setOpen(false);
   };
 
+  //Logout button function
   const handleClose = () => {
     fire.auth().signOut();
     props.setUserState();
