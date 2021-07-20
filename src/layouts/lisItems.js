@@ -63,21 +63,6 @@ function MainListItems(props) {
       <MenuItem
         button
         onClick={() => {
-          setSelected(3);
-          props.setPages(<CreateNewProject setProjTitle={handleProjTitle} />);
-          props.setTitles("Create New Project");
-        }}
-        selected={selected === 3}
-      >
-        <ListItemIcon>
-          <AddToQueueIcon />
-        </ListItemIcon>
-        <ListItemText primary="Create New Project" />
-      </MenuItem>
-
-      <MenuItem
-        button
-        onClick={() => {
           setSelected(4);
           props.setPages(<MyProjects />);
           props.setTitles("My Projects");
@@ -88,6 +73,21 @@ function MainListItems(props) {
           <ListIcon />
         </ListItemIcon>
         <ListItemText primary="My Projects" />
+      </MenuItem>
+
+      <MenuItem
+        button
+        onClick={() => {
+          setSelected(3);
+          props.setPages(<CreateNewProject setProjTitle={handleProjTitle} />);
+          props.setTitles("Create New Project");
+        }}
+        selected={selected === 3}
+      >
+        <ListItemIcon>
+          <AddToQueueIcon />
+        </ListItemIcon>
+        <ListItemText primary="Create New Project" />
       </MenuItem>
     </div>
   );

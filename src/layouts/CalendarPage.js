@@ -19,6 +19,7 @@ import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import DatePicker from "material-ui/DatePicker";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
@@ -189,30 +190,73 @@ function CalendarPage() {
 
   const handleImport = (event) => {
     setSelectedFile(event.target.files[0]);
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const parsed = ical.parseString(reader.result);
+      console.log(parsed);
+    };
+    reader.readAsText(event.target.files[0]);
   };
 
   const handleUpload = () => {
     // When add Import Cal is clicked after selecting file
-
     const reader = new FileReader();
     const user = fire.auth().currentUser;
 
     reader.onload = () => {
       const parsed = ical.parseString(reader.result);
+      console.log(parsed);
 
       parsed.events.map((e) => {
-        db.collection("users")
-          .doc(user.uid)
-          .collection("Events")
-          .doc(user.uid)
-          .update({
-            events: firebase.firestore.FieldValue.arrayUnion({
-              title: e.description.value.toString(),
-              bgColor: getRandomColor(),
-              start: new Date(e.dtstart.value),
-              end: new Date(e.dtend.value),
-            }),
-          });
+        if (e.hasOwnProperty("recurrenceRule")) {
+          const rr = e.recurrenceRule;
+          const times = rr._rrule[0].options.count;
+          const exDate = rr._exdate;
+          const exDateConverted = exDate.map((date) => date.toString())
+
+          for (let i = 1; i < times; i++) {
+            const startDate = new Date(e.dtstart.value);
+            const endDate = new Date(e.dtend.value);
+            startDate.setDate(startDate.getDate() + 7 * i);
+            endDate.setDate(endDate.getDate() + 7 * i);
+      
+
+            const found = exDateConverted.find((element) => element === startDate.toString());
+            console.log(typeof startDate)
+            console.log(typeof exDate[0])
+            console.log(found)
+
+
+            if (found === undefined) {
+              db.collection("users")
+                .doc(user.uid)
+                .collection("Events")
+                .doc(user.uid)
+                .update({
+                  events: firebase.firestore.FieldValue.arrayUnion({
+                    title: e.summary.value.toString(),
+                    bgColor: getRandomColor(),
+                    start: startDate,
+                    end: endDate,
+                  }),
+                });
+            }
+          }
+        } else {
+          db.collection("users")
+            .doc(user.uid)
+            .collection("Events")
+            .doc(user.uid)
+            .update({
+              events: firebase.firestore.FieldValue.arrayUnion({
+                title: e.summary.value.toString(),
+                bgColor: getRandomColor(),
+                start: new Date(e.dtstart.value),
+                end: new Date(e.dtend.value),
+              }),
+            });
+        }
       });
 
       handleUpdate();
