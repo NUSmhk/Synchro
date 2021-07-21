@@ -4,8 +4,8 @@ import getToken from "../getToken";
 
 const url = 'http://localhost:3001/api/projects';
 
-// Creates a project initialized with the specified name and with the creator in its list of collaborators
-async function createProject(projectName) {
+// Creates a project initialized with the specified name and end date, with the creator's uid in the first index of the user array 
+async function createProject(projectName, endDate) {
     
     const user = fire.auth().currentUser;
     const uid = user.uid;
@@ -13,6 +13,7 @@ async function createProject(projectName) {
     const header = await getToken();
     const payload = {
         name: projectName,
+        endDate: endDate,
         users: [uid]
     }
 
@@ -22,16 +23,7 @@ async function createProject(projectName) {
     } catch (err) {
         console.log(err);
     }
-}
 
-async function getProject(projectId) {
-    const header = await getToken();
-    const 
-}
-
-async function addUserToProject(uid) {
-    const header = await getToken();
-    const 
 }
 
 export default createProject;
