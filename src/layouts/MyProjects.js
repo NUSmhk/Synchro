@@ -56,7 +56,7 @@ function MyProjects() {
             <Typography>My Projects</Typography>
 
             <List>
-              {projects.map((task, index) => (
+              {projects.map((task) => (
                 <ListItem divider alignItems="flex-start" button>
                   <ListItemIcon>
                     <WorkOutlineIcon></WorkOutlineIcon>

@@ -15,6 +15,7 @@ import { fire, db } from "../helpers/db";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {changeCurrentUserInfo} from "../services/userServices"
 
 function Profile() {
   const user = fire.auth().currentUser;
@@ -75,6 +76,8 @@ function Profile() {
         .then(() => {
           setchangedName(name);
 
+          changeCurrentUserInfo({displayName: name})
+
           db.collection("users")
             .doc(user.uid)
             .collection("userInfo")
@@ -97,6 +100,9 @@ function Profile() {
         .updateEmail(email)
         .then(() => {
           setchangedEmail(email);
+
+          changeCurrentUserInfo({email: email})
+          
           db.collection("users")
             .doc(user.uid)
             .collection("userInfo")

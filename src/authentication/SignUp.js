@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import firebase from "firebase";
 import Toast from "../Components/Toast";
+import {createUser} from "../services/userServices"
 
 const SignUp = (props) => {
   const classes = useStyles();
@@ -52,6 +53,10 @@ const SignUp = (props) => {
           user.updateProfile({
             displayName: name,
           });
+
+          createUser(name);
+
+
 
           //Update user info which is name + email
           db.collection("users")

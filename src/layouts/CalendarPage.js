@@ -19,22 +19,22 @@ import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
-import DatePicker from "material-ui/DatePicker";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
 function CalendarPage() {
   const classes = useStyles();
-  const [open, setOpen] = useState(false);
+  const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [open1, setOpen1] = useState(false);
+  const [openImportCal, setOpenImportCal] = useState(false);
+  const [openSlotAddEvent, setOpenSlotAddEvent] = useState(false);
 
   // Constants below to format date time for current date time of Add Event pop out
-  const currMonth = () => {
-    const month = new Date().getMonth() + 1;
+  const currMonth = (date) => {
+    const month = date.getMonth() + 1;
     if (month < 10) {
       return "0" + month;
     } else {
@@ -42,17 +42,17 @@ function CalendarPage() {
     }
   };
 
-  const currDate = () => {
-    const date = new Date().getDate();
-    if (date < 10) {
-      return "0" + date;
+  const currDay = (date) => {
+    const day = date.getDate();
+    if (day < 10) {
+      return "0" + day;
     } else {
-      return date;
+      return day;
     }
   };
 
-  const currHours = () => {
-    const hours = new Date().getHours();
+  const currHours = (date) => {
+    const hours = date.getHours();
     if (hours < 10) {
       return "0" + hours;
     } else {
@@ -60,8 +60,8 @@ function CalendarPage() {
     }
   };
 
-  const currMins = () => {
-    const mins = new Date().getMinutes();
+  const currMins = (date) => {
+    const mins = date.getMinutes();
     if (mins < 10) {
       return "0" + mins;
     } else {
@@ -72,16 +72,29 @@ function CalendarPage() {
   const currDateTime =
     new Date().getFullYear() +
     "-" +
-    currMonth() +
+    currMonth(new Date()) +
     "-" +
-    currDate() +
+    currDay(new Date()) +
     "T" +
-    currHours() +
+    currHours(new Date()) +
     ":" +
-    currMins();
+    currMins(new Date());
+
+  const inputDateTime = (date) =>
+    new Date(date).getFullYear() +
+    "-" +
+    currMonth(new Date(date)) +
+    "-" +
+    currDay(new Date(date)) +
+    "T" +
+    currHours(new Date(date)) +
+    ":" +
+    currMins(new Date(date));
 
   const [datetime1, setDatetime1] = useState(currDateTime);
   const [datetime2, setDatetime2] = useState(currDateTime);
+  const [slotDatetime1, setSlotDatetime1] = useState("");
+  const [slotDatetime2, setSlotDatetime2] = useState("");
 
   const [event, setEvents] = useState([]);
 
@@ -124,14 +137,19 @@ function CalendarPage() {
     setDatetime2(event.target.value);
   };
 
-  const handleClickOpen = () => {
+  const handleClickOpenAddEvent = () => {
     // To open Add Event
-    setOpen(true);
+    setOpenAddEvent(true);
   };
 
-  const handleClickOpen1 = () => {
+  const handleClickOpenImportCal = () => {
     // To close Import Cal
-    setOpen1(true);
+    setOpenImportCal(true);
+  };
+
+  const handleClickOpenSlotAddEvent = () => {
+    // To open Add Event on clicked slot
+    setOpenSlotAddEvent(true);
   };
 
   function getRandomColor() {
@@ -143,6 +161,7 @@ function CalendarPage() {
     }
     return color;
   }
+
   const handleAddEvent = () => {
     // To add Event where it adds to database
 
@@ -165,22 +184,29 @@ function CalendarPage() {
           }),
         });
       handleUpdate();
-      handleClose();
+      handleCloseAddEvent();
     }
   };
 
-  const handleClose = () => {
+  const handleCloseAddEvent = () => {
     // To close Add Event pop out
-    setOpen(false);
+    setOpenAddEvent(false);
     setDatetime1(currDateTime);
     setDatetime2(currDateTime);
     setEventName("");
   };
 
-  const handleClose1 = () => {
+  const handleCloseImportCal = () => {
     // To close Import Cal pop out
-    setOpen1(false);
+    setOpenImportCal(false);
     setSelectedFile(null);
+  };
+
+  const handleCloseSlotAddEvent = () => {
+    setOpenSlotAddEvent(false);
+    setDatetime1(currDateTime);
+    setDatetime2(currDateTime);
+    setEventName("");
   };
 
   useEffect(() => {
@@ -213,20 +239,17 @@ function CalendarPage() {
           const rr = e.recurrenceRule;
           const times = rr._rrule[0].options.count;
           const exDate = rr._exdate;
-          const exDateConverted = exDate.map((date) => date.toString())
+          const exDateConverted = exDate.map((date) => date.toString());
 
           for (let i = 1; i < times; i++) {
             const startDate = new Date(e.dtstart.value);
             const endDate = new Date(e.dtend.value);
             startDate.setDate(startDate.getDate() + 7 * i);
             endDate.setDate(endDate.getDate() + 7 * i);
-      
 
-            const found = exDateConverted.find((element) => element === startDate.toString());
-            console.log(typeof startDate)
-            console.log(typeof exDate[0])
-            console.log(found)
-
+            const found = exDateConverted.find(
+              (element) => element === startDate.toString()
+            );
 
             if (found === undefined) {
               db.collection("users")
@@ -266,18 +289,15 @@ function CalendarPage() {
       toast.error("Please select a .ics file");
     } else {
       reader.readAsText(selectedFile);
-      handleClose1();
+      handleCloseImportCal();
     }
   };
 
-  return (
-    <main className={classes.content}>
-      <div className={classes.appBarSpacer} />
-
-      <Toast position="top-center"></Toast>
+  const addEventDialog = (start, end, openDia, closeDia) => {
+    return (
       <Dialog // Pop out for Add Event
-        open={open}
-        onClose={handleClose}
+        open={openDia}
+        onClose={closeDia}
         aria-labelledby="form-dialog-title"
       >
         <DialogTitle id="form-dialog-title">Add Event</DialogTitle>
@@ -295,7 +315,7 @@ function CalendarPage() {
             id="datetime-local"
             label="Event Start"
             type="datetime-local"
-            defaultValue={currDateTime}
+            defaultValue={start}
             className={classes.textField}
             onChange={handleDatetime1}
             InputLabelProps={{
@@ -307,7 +327,7 @@ function CalendarPage() {
             id="datetime-local"
             label="Event End"
             type="datetime-local"
-            defaultValue={currDateTime}
+            defaultValue={end}
             onChange={handleDatetime2}
             className={classes.textField}
             InputLabelProps={{
@@ -336,7 +356,7 @@ function CalendarPage() {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleClose()}
+                onClick={() => handleCloseAddEvent()}
               >
                 {" "}
                 CANCEL{" "}
@@ -345,6 +365,70 @@ function CalendarPage() {
           </Grid>
         </DialogContent>
       </Dialog>
+    );
+  };
+
+  const importCalDialog = () => {
+    return (
+      <Dialog
+        open={openImportCal}
+        onClose={handleCloseImportCal}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Import an ics file</DialogTitle>
+        <DialogContent>
+          <input type="file" onChange={handleImport}></input>{" "}
+          {/* will setFile to first in array */}
+          <Grid
+            container
+            className={classes.buttons}
+            spacing={3}
+            justify="flex-end"
+          >
+            <Grid item>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleUpload}
+              >
+                {" "}
+                IMPORT CALENDAR{" "}
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleCloseImportCal()}
+              >
+                {" "}
+                CANCEL{" "}
+              </Button>
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  return (
+    <main className={classes.content}>
+      <div className={classes.appBarSpacer} />
+
+      <Toast position="top-center"></Toast>
+      {addEventDialog(
+        currDateTime,
+        currDateTime,
+        openAddEvent,
+        handleCloseAddEvent
+      )}
+      {addEventDialog(
+        inputDateTime(slotDatetime1),
+        inputDateTime(slotDatetime2),
+        openSlotAddEvent,
+        handleCloseSlotAddEvent
+      )}
+      {/* {importCalDialog} */}
 
       <Grid
         container
@@ -356,7 +440,7 @@ function CalendarPage() {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleClickOpen}
+            onClick={handleClickOpenAddEvent}
             startIcon={<AddToQueueIcon />}
           >
             {" "}
@@ -370,50 +454,13 @@ function CalendarPage() {
             color="primary"
             component="label"
             startIcon={<CalendarTodayIcon />}
-            onClick={handleClickOpen1}
+            onClick={handleClickOpenImportCal}
           >
             {" "}
             Import Calendar{" "}
           </Button>
 
-          <Dialog
-            open={open1}
-            onClose={handleClose1}
-            aria-labelledby="form-dialog-title"
-          >
-            <DialogTitle id="form-dialog-title">Import an ics file</DialogTitle>
-            <DialogContent>
-              <input type="file" onChange={handleImport}></input>{" "}
-              {/* will setFile to first in array */}
-              <Grid
-                container
-                className={classes.buttons}
-                spacing={3}
-                justify="flex-end"
-              >
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleUpload}
-                  >
-                    {" "}
-                    IMPORT CALENDAR{" "}
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleClose1()}
-                  >
-                    {" "}
-                    CANCEL{" "}
-                  </Button>
-                </Grid>
-              </Grid>
-            </DialogContent>
-          </Dialog>
+          {importCalDialog()}
         </Grid>
       </Grid>
 
@@ -425,30 +472,24 @@ function CalendarPage() {
           scrollToTime={new Date(1970, 1, 1, 6)}
           defaultDate={new Date()}
           onSelectEvent={(event) => alert(event.title)}
-          onSelectSlot={(slotInfo) =>
-            alert(
-              `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
-                `\nend: ${slotInfo.end.toLocaleString()}` +
-                `\naction: ${slotInfo.action}`
-            )
+          onSelectSlot={
+            (slotInfo) => {
+              setSlotDatetime1(slotInfo.start);
+              setSlotDatetime2(slotInfo.end);
+
+        
+
+              handleClickOpenSlotAddEvent();
+            }
+
+            // (slotInfo) =>
+            // alert(
+            //   `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
+            //     `\nend: ${slotInfo.end.toLocaleString()}` +
+            //     `\naction: ${slotInfo.action}`
+            // )
           }
         ></BigCalendar>
-        {/* <p>
-          {selectedFile ? (
-            <div>
-              <p>File Name: {selectedFile.name}</p>
-              <p>File Type: {selectedFile.type}</p>
-              {testOutput}
-            </div>
-          ) : (
-            <div>
-              <p> AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA </p>
-              <p> AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA </p>
-              <p> AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA </p>
-              <p> AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA </p>
-            </div>
-          )}
-        </p> */}
       </Paper>
     </main>
   );

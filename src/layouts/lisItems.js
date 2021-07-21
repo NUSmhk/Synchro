@@ -11,6 +11,7 @@ import CreateNewProject from "./CreateNewProject";
 import MyProjects from "./MyProjects";
 import { fire, db } from "../helpers/db";
 import firebase from "firebase";
+import createProject from "../services/projectServices"
 
 function MainListItems(props) {
   const user = fire.auth().currentUser;
@@ -18,7 +19,7 @@ function MainListItems(props) {
   const [selected, setSelected] = useState(2);
 
   //Passed down as props to CreateNewProject, to store title in firestore
-  const handleProjTitle = (title) => {
+  const handleProjTitle = (title, endDate) => {
     db.collection("users")
       .doc(user.uid)
       .collection("projects")
@@ -26,6 +27,9 @@ function MainListItems(props) {
       .update({
         proj: firebase.firestore.FieldValue.arrayUnion({ description: title }),
       });
+
+      createProject(title, endDate)
+
   };
 
   return (

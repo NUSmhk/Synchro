@@ -12,6 +12,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  TextField
 } from "@material-ui/core";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
@@ -27,10 +28,15 @@ function CreateNewProject(props) {
   const [members, addMembers] = useState([]);
   const [newMember, addNewMember] = useState("");
   const [projectTitle, addProjectTitle] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
 
   const handleProjectTitle = (event) => {
     addProjectTitle(event.target.value);
   };
+
+  const handleEndDate = (event) => {
+    setEndDateTime(event.target.value)
+  }
 
   //To handle adding members in project creation
   const handleAddMembers = () => {
@@ -75,8 +81,9 @@ function CreateNewProject(props) {
 
     //Error handling for project title input
     if (projectTitle !== "") {
-      if (found !== undefined) {
-        props.setProjTitle(projectTitle);
+      if (found === undefined) {
+        props.setProjTitle(projectTitle, endDateTime);
+        toast.success("Project successfully created!")
       } else {
         toast.error("This Project Name already exists");
       }
@@ -110,6 +117,21 @@ function CreateNewProject(props) {
                 onChange={handleProjectTitle}
               />
               <br />
+              <TextField
+            id="datetime-local"
+            label="End of Project"
+            type="datetime-local"
+            className={classes.textField}
+            fullWidth
+            onChange={handleEndDate}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <br />
+          <br />
+          
+          
 
               <Grid container justify="flex-left">
                 <Grid item lg={11}>
