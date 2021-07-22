@@ -4,24 +4,24 @@ import getToken from "./getToken";
 
 const url = 'http://localhost:3001/api/projects';
 
-/* Project creation handled in userServices
-// Creates a project initialized with the specified name and end date
-export async function createProject(projectName, endDate) {
-    const header = await getToken();
+// // Project creation handled in userServices
+// // Creates a project initialized with the specified name and end date
+// export async function createProject(projectName, endDate) {
+//     const header = await getToken();
 
-    const payload = {
-        name: projectName,
-        endDate: endDate,
-    }
+//     const payload = {
+//         name: projectName,
+//         endDate: endDate,
+//     }
 
-    try {
-        const res = await axios.post(url, payload, header);
-        return res.data;
-    } catch (err) {
-        console.log(err);
-    }
-}
-*/
+//     try {
+//         const res = await axios.post(url, payload, header);
+//         return res.data;
+//     } catch (err) {
+//         console.log(err);
+//     }
+// }
+
 
 // Get project information given the project id
 export async function getProject(projectId) {

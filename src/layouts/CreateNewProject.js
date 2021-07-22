@@ -86,14 +86,23 @@ function CreateNewProject(props) {
     //Error handling for project title input
     if (projectTitle !== "") {
       if (found === undefined) {
-        props.setProjTitle(projectTitle, endDateTime);
+
+        if (endDateTime !== "") {
+          props.setProjTitle(projectTitle, endDateTime);
         toast.success("Project successfully created!");
+        } else {
+          toast.error("Please select date and time of the End of Project")
+        }
+        
       } else {
         toast.error("This Project Name already exists");
       }
     } else {
       toast.error("Please fill in the Project Name");
     }
+
+
+
   };
 
   return (

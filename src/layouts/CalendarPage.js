@@ -19,6 +19,7 @@ import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import { addNewEventToCurrentUser, getCurrentUserEvents, getCurrentUserProjects} from "../services/userServices"
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
@@ -95,35 +96,44 @@ function CalendarPage() {
   const [datetime2, setDatetime2] = useState(currDateTime);
   const [slotDatetime1, setSlotDatetime1] = useState("");
   const [slotDatetime2, setSlotDatetime2] = useState("");
+  const [projID, setProjID] = useState("");
 
   const [event, setEvents] = useState([]);
 
   const ical = require("cal-parser");
 
-  const handleUpdate = () => {
-    // To update current Calendar on page
-    //test
-    const user = fire.auth().currentUser;
-    db.collection("users")
-      .doc(user.uid)
-      .collection("Events")
-      .doc(user.uid)
-      .get()
-      .then((doc) => {
-        if (doc.exists) {
-          const fireEvent = doc.data().events;
+  // const handleUpdate = () => {
+  //   // To update current Calendar on page
+  //   //test
+  //   const user = fire.auth().currentUser;
+  //   db.collection("users")
+  //     .doc(user.uid)
+  //     .collection("Events")
+  //     .doc(user.uid)
+  //     .get()
+  //     .then((doc) => {
+  //       if (doc.exists) {
+  //         const fireEvent = doc.data().events;
 
-          if (fireEvent !== undefined) {
-            fireEvent.map((obj) => {
-              obj.start = obj.start.toDate();
-              obj.end = obj.end.toDate();
-            });
-            setEvents(fireEvent);
-          }
-        } else {
-        }
-      });
-  };
+  //         if (fireEvent !== undefined) {
+  //           fireEvent.map((obj) => {
+  //             obj.start = obj.start.toDate();
+  //             obj.end = obj.end.toDate();
+  //           });
+            
+            
+  //           setEvents(fireEvent.map((eachEvent) =>  (
+  //             {title: eachEvent.title,
+  //             bgColor: "#0000FF",
+  //             start: eachEvent.start,
+  //             end: eachEvent.end  } 
+
+  //           )));
+  //         }
+  //       } else {
+  //       }
+  //     });
+  // };
 
   const handleEventName = (event) => {
     setEventName(event.target.value);
@@ -170,20 +180,36 @@ function CalendarPage() {
     } else if (datetime1 > datetime2) {
       toast.error("Please select valid timings");
     } else {
-      const user = fire.auth().currentUser;
-      db.collection("users")
-        .doc(user.uid)
-        .collection("Events")
-        .doc(user.uid)
-        .update({
-          events: firebase.firestore.FieldValue.arrayUnion({
-            title: eventName,
-            bgColor: getRandomColor(),
-            start: new Date(datetime1),
-            end: new Date(datetime2),
-          }),
-        });
-      handleUpdate();
+      // const user = fire.auth().currentUser;
+      // db.collection("users")
+      //   .doc(user.uid)
+      //   .collection("Events")
+      //   .doc(user.uid)
+      //   .update({
+      //     events: firebase.firestore.FieldValue.arrayUnion({
+      //       title: eventName,
+
+      //       start: new Date(datetime1),
+      //       end: new Date(datetime2),
+      //     }),
+      //   });
+
+
+      addNewEventToCurrentUser({
+        title: eventName,
+        start: new Date(datetime1),
+        end: new Date(datetime2),
+      })
+
+      getCurrentUserEvents().then(result => setEvents(result.events.map((eachEvent) => ({
+        title: eachEvent.title,
+                bgColor: "#0000FF",
+                start: new Date(eachEvent.start),
+                end: new Date(eachEvent.end) 
+      })
+      )))
+
+      // handleUpdate();
       handleCloseAddEvent();
     }
   };
@@ -211,7 +237,17 @@ function CalendarPage() {
 
   useEffect(() => {
     // To load Cal page using database everytime component refreshes/revisted
-    handleUpdate();
+    // handleUpdate();
+    getCurrentUserEvents().then(result => setEvents(result.events.map((eachEvent) => ({
+      title: eachEvent.title,
+              bgColor: "#0000FF",
+              start: new Date(eachEvent.start),
+              end: new Date(eachEvent.end) 
+    })
+    )))
+
+    getCurrentUserProjects().then(result => setProjID(result.projects[0]._id))
+ 
   }, []);
 
   const handleImport = (event) => {
@@ -282,7 +318,7 @@ function CalendarPage() {
         }
       });
 
-      handleUpdate();
+      // handleUpdate();
     };
 
     if (selectedFile === null || selectedFile.type !== "text/calendar") {

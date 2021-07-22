@@ -9,6 +9,12 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography
 } from "@material-ui/core";
 
 import { fire, db } from "../helpers/db";
@@ -17,20 +23,30 @@ import moment from "moment";
 import firebase from "firebase";
 import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
+import AddCircleIcon from "@material-ui/icons/AddCircle";
+import GroupIcon from "@material-ui/icons/Group";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import {ValidationForm, TextValidator } from "react-material-ui-form-validator";
+import {getCurrentUserProjects} from "../services/userServices"
+import {addUserToProject} from "../services/projectServices"
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
-function CalendarPage() {
+function TeamCalendarPage() {
   const classes = useStyles();
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
 
+  const [members, addMembers] = useState([{description: fire.auth().currentUser.email}]);
+  const [newMember, addNewMember] = useState("");
+
   const [openImportCal, setOpenImportCal] = useState(false);
   const [openSlotAddEvent, setOpenSlotAddEvent] = useState(false);
+  const [openMemberList, setOpenmemberList] = useState(false);
+  const [projID, setProjID] = useState("");
 
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
@@ -152,6 +168,11 @@ function CalendarPage() {
     setOpenSlotAddEvent(true);
   };
 
+  const handleClickOpenMemberList = () => {
+    // To open Member List
+    setOpenmemberList(true);
+  }
+
   function getRandomColor() {
     // Random colouring of events generated whenever an event is added
     var letters = "0123456789ABCDEF";
@@ -208,10 +229,19 @@ function CalendarPage() {
     setDatetime2(currDateTime);
     setEventName("");
   };
+ 
+  const handleCloseMemberList = () => {
+    setOpenmemberList(false);
+  }
+
+  const handleNewMember = (event) => {
+    addNewMember(event.target.value)
+  }
 
   useEffect(() => {
     // To load Cal page using database everytime component refreshes/revisted
     handleUpdate();
+    getCurrentUserProjects().then(result => {setProjID(result.projects[0]._id); console.log(result.projects)})
   }, []);
 
   const handleImport = (event) => {
@@ -411,6 +441,112 @@ function CalendarPage() {
     );
   };
 
+    const handleAddMembers = () => {
+
+    //error handling for members, need to add checks for existence of members
+    if (newMember === "") {
+      addMembers([...members]);
+      toast.error(
+        "Please fill in Email of a Group Member that you want to add"
+      );
+    } else {
+      addMembers([
+        ...members,
+        {
+          description: newMember,
+        },
+      ]);
+
+      addUserToProject(newMember, projID).catch(toast.error("User's Email does not exist"))
+
+    }
+  };
+
+  const memberListDialog = () => {
+    return (
+      <Dialog // Pop out for Add Event
+        open={openMemberList}
+        onClose={handleCloseMemberList}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">Project Group Members</DialogTitle>
+        <DialogContent>
+        
+          <br></br>
+           <Grid container justify="flex-left">
+    
+      
+                <Grid item lg={11}>
+
+                <TextField onChange={handleNewMember} label="Member's Email" variant="outlined" />
+                 
+                </Grid>
+                <Grid item lg={1}>
+                  <IconButton
+    
+                    variant="contained"
+                    color="primary"
+                    style={{ height: 55, width: 50 }}
+                    onClick={handleAddMembers}
+                  >
+                    <AddCircleIcon></AddCircleIcon>
+                  </IconButton>
+                </Grid>
+   
+            </Grid>
+
+              <br></br>
+              <Typography align="center"> Member List:</Typography>
+              <br></br>
+
+              <List>
+                {members.map((task, index) => (
+                  <ListItem divider alignItems="flex-start">
+                    <ListItemIcon>
+                      <GroupIcon></GroupIcon>
+                    </ListItemIcon>
+                    <ListItemText>
+                      <td>{index + 1}. </td>
+                      <td>{task.description}</td>
+                    </ListItemText>
+
+                  </ListItem>
+                ))}
+              </List>
+
+          <Grid
+            container
+            className={classes.buttons}
+            spacing={3}
+            justify="flex-end"
+          >
+            <Grid item>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleAddEvent}
+              >
+                {" "}
+                ADD EVENT{" "}
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCloseMemberList}
+              >
+                {" "}
+                CANCEL{" "}
+              </Button>
+            </Grid>
+          </Grid>
+          
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
@@ -428,7 +564,7 @@ function CalendarPage() {
         openSlotAddEvent,
         handleCloseSlotAddEvent
       )}
-      {/* {importCalDialog} */}
+      
 
       <Grid
         container
@@ -436,6 +572,20 @@ function CalendarPage() {
         spacing={3}
         justify="flex-end"
       >
+        <Grid item>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClickOpenMemberList}
+            startIcon={<AddToQueueIcon />}
+          >
+            {" "}
+            Member List{" "}
+          </Button>
+
+          {memberListDialog()}
+        </Grid>
+
         <Grid item>
           <Button
             variant="contained"
@@ -530,4 +680,4 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default CalendarPage;
+export default TeamCalendarPage;

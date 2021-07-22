@@ -11,7 +11,8 @@ import CreateNewProject from "./CreateNewProject";
 import MyProjects from "./MyProjects";
 import { fire, db } from "../helpers/db";
 import firebase from "firebase";
-import {createProject} from "../services/projectServices"
+import {addNewProjectToCurrentUser} from "../services/userServices"
+
 
 function MainListItems(props) {
   const user = fire.auth().currentUser;
@@ -28,7 +29,12 @@ function MainListItems(props) {
         proj: firebase.firestore.FieldValue.arrayUnion({ description: title }),
       });
 
-      createProject(title, endDate)
+     addNewProjectToCurrentUser({
+              name: title,
+              endDate: endDate,
+          })
+
+    //  createProject(title, endDate)
 
   };
 
