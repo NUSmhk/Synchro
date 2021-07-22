@@ -1,6 +1,6 @@
-import {fire} from "../helpers/db"
+import fire from "../helpers/db.js"
 import axios from "axios";
-import getToken from "./getToken";
+import getToken from "../getToken";
 
 const url = 'http://localhost:3001/api/users';
 
@@ -26,10 +26,7 @@ export async function createUser(displayName) {
 }
 
 // Get user information given their uid: displayName, email, uid
-export async function getUserInfo() {
-    const user = fire.auth().currentUser;
-    const uid = user.uid;
-
+export async function getUserInfo(uid) {
     const header = await getToken();
 
     try {
@@ -68,11 +65,10 @@ export async function getCurrentUserEvents() {
     } catch (err) {
         console.error(err);
     }
-
 }
 
 /**
- * Change user info. Set payload.email and/or payload.displayName
+ * Change current user info. Set payload.email and/or payload.displayName
  */
  export async function changeCurrentUserInfo(payload) {
     const user = fire.auth().currentUser;
@@ -86,7 +82,6 @@ export async function getCurrentUserEvents() {
     } catch (err) {
         console.error(err);
     }
-
 }
 
 /**
@@ -112,13 +107,13 @@ export async function addProjectToUser(projectId) {
 /**
  * Adds the given event to the user's list of events
  */
- export async function addEventToUser(event) {
+ export async function addEventToUser(eventId) {
     const user = fire.auth().currentUser;
     const uid = user.uid;
 
     const header = await getToken();
     const payload = {
-        event: event
+        eventId: eventId
     }
 
     try {
