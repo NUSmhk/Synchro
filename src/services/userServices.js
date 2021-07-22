@@ -25,7 +25,7 @@ export async function createUser(displayName) {
     }
 }
 
-// Get user information given their uid: displayName, email, uid
+// Get user information (displayName, email) given their uid
 export async function getUserInfo(uid) {
     const header = await getToken();
 
@@ -37,7 +37,7 @@ export async function getUserInfo(uid) {
     }
 }
 
-// Get current user projects
+// Get current user project information (_id, name, endDate)
 export async function getCurrentUserProjects() {
     const user = fire.auth().currentUser;
     const uid = user.uid;
@@ -68,16 +68,16 @@ export async function getCurrentUserEvents() {
 }
 
 /**
- * Change current user info. Set payload.email and/or payload.displayName
+ * Change current user info
  */
- export async function changeCurrentUserInfo(payload) {
+ export async function changeCurrentUserInfo(userInfo) {
     const user = fire.auth().currentUser;
     const uid = user.uid;
 
     const header = await getToken();
 
     try {
-        const res = await axios.put(url + '/' + uid, payload, header);
+        const res = await axios.put(url + '/' + uid, userInfo, header);
         return res.data;
     } catch (err) {
         console.error(err);
@@ -85,19 +85,16 @@ export async function getCurrentUserEvents() {
 }
 
 /**
- * Adds the given projectId to the user's list of projects
+ * Creates a project using the given projectInfo and adds it to the current user's list of projects
  */
-export async function addProjectToUser(projectId) {
+export async function addNewProjectToCurrentUser(projectInfo) {
     const user = fire.auth().currentUser;
     const uid = user.uid;
 
     const header = await getToken();
-    const payload = {
-        projectId: projectId
-    }
 
     try {
-        const res = axios.put(url + '/' + uid + '/projects', payload, header);
+        const res = axios.put(url + '/' + uid + '/projects', projectInfo, header);
         return res.data;
     } catch (err) {
         console.log(err);
@@ -105,19 +102,16 @@ export async function addProjectToUser(projectId) {
 }
 
 /**
- * Adds the given event to the user's list of events
+ * Creates an event using the given eventInfo and adds it to the current user's list of events
  */
- export async function addEventToUser(eventId) {
+ export async function addNewEventToCurrentUser(eventInfo) {
     const user = fire.auth().currentUser;
     const uid = user.uid;
 
     const header = await getToken();
-    const payload = {
-        eventId: eventId
-    }
 
     try {
-        const res = axios.put(url + '/' + uid + '/events', payload, header);
+        const res = axios.put(url + '/' + uid + '/events', eventInfo, header);
         return res.data;
     } catch (err) {
         console.log(err);
