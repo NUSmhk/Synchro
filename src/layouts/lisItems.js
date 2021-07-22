@@ -11,7 +11,7 @@ import CreateNewProject from "./CreateNewProject";
 import MyProjects from "./MyProjects";
 import { fire, db } from "../helpers/db";
 import firebase from "firebase";
-import createProject from "../services/projectServices"
+import {createProject} from "../services/projectServices"
 
 function MainListItems(props) {
   const user = fire.auth().currentUser;
@@ -31,6 +31,14 @@ function MainListItems(props) {
       createProject(title, endDate)
 
   };
+
+  const setTeamPage = (page) => {
+    props.setPages(page)
+  }
+
+  const setTeamTitle = (title) => {
+  props.setTitles(title)
+  }
 
   return (
     <div>
@@ -68,7 +76,7 @@ function MainListItems(props) {
         button
         onClick={() => {
           setSelected(4);
-          props.setPages(<MyProjects />);
+          props.setPages(<MyProjects setTeamPages={setTeamPage} setTeamTitles={setTeamTitle}/>);
           props.setTitles("My Projects");
         }}
         selected={selected === 4}

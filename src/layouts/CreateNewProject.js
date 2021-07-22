@@ -12,7 +12,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  TextField
+  TextField,
 } from "@material-ui/core";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
@@ -20,13 +20,14 @@ import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 import { fire, db } from "../helpers/db";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import { addUserToProject } from "../services/projectServices";
 
 function CreateNewProject(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-  const [members, addMembers] = useState([]);
-  const [newMember, addNewMember] = useState("");
+  // const [members, addMembers] = useState([]);
+  // const [newMember, addNewMember] = useState("");
   const [projectTitle, addProjectTitle] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
@@ -35,27 +36,30 @@ function CreateNewProject(props) {
   };
 
   const handleEndDate = (event) => {
-    setEndDateTime(event.target.value)
-  }
-
-  //To handle adding members in project creation
-  const handleAddMembers = () => {
-
-    //error handling for members, need to add checks for existence of members
-    if (newMember === "") {
-      addMembers([...members]);
-      toast.error(
-        "Please fill in Email of a Group Member that you want to add"
-      );
-    } else {
-      addMembers([
-        ...members,
-        {
-          description: newMember,
-        },
-      ]);
-    }
+    setEndDateTime(event.target.value);
   };
+
+  // //To handle adding members in project creation
+  // const handleAddMembers = () => {
+
+  //   //error handling for members, need to add checks for existence of members
+  //   if (newMember === "") {
+  //     addMembers([...members]);
+  //     toast.error(
+  //       "Please fill in Email of a Group Member that you want to add"
+  //     );
+  //   } else {
+  //     addMembers([
+  //       ...members,
+  //       {
+  //         description: newMember,
+  //       },
+  //     ]);
+
+  //     // addUserToProject(newMember, )
+
+  //   }
+  // };
 
   //To add into firebase under user's project when submit button is pressed
   const handleNewProject = () => {
@@ -83,7 +87,7 @@ function CreateNewProject(props) {
     if (projectTitle !== "") {
       if (found === undefined) {
         props.setProjTitle(projectTitle, endDateTime);
-        toast.success("Project successfully created!")
+        toast.success("Project successfully created!");
       } else {
         toast.error("This Project Name already exists");
       }
@@ -118,22 +122,19 @@ function CreateNewProject(props) {
               />
               <br />
               <TextField
-            id="datetime-local"
-            label="End of Project"
-            type="datetime-local"
-            className={classes.textField}
-            fullWidth
-            onChange={handleEndDate}
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <br />
-          <br />
-          
-          
+                id="datetime-local"
+                label="End of Project"
+                type="datetime-local"
+                className={classes.textField}
+                fullWidth
+                onChange={handleEndDate}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+      
 
-              <Grid container justify="flex-left">
+              {/* <Grid container justify="flex-left">
                 <Grid item lg={11}>
                   <TextValidator
                     variant="outlined"
@@ -173,13 +174,10 @@ function CreateNewProject(props) {
                       <td>{index + 1}. </td>
                       <td>{task.description}</td>
                     </ListItemText>
-                    {/* <Typography>
-                  {task.description}
-                </Typography>
-                 */}
+
                   </ListItem>
                 ))}
-              </List>
+              </List> */}
 
               <Button
                 type="submit"
