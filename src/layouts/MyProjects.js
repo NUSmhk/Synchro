@@ -6,6 +6,7 @@ import {
   Typography,
   Grid,
   Paper,
+  Button,
   List,
   ListItem,
   ListItemIcon,
@@ -14,35 +15,46 @@ import {
 import WorkOutlineIcon from "@material-ui/icons/WorkOutline";
 import { fire, db } from "../helpers/db";
 import Toast from "../Components/Toast";
+import { getCurrentUserProjects } from "../services/userServices";
+import TeamCalendarPage from "./TeamCalendarPage copy";
 
-function MyProjects() {
+function MyProjects(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState({ projects: [] });
 
   //To load My Projects list everytime component loads, using backend's storage of list of projs
   useEffect(() => {
-    const handleUpdate = () => {
-      //test
-      const user = fire.auth().currentUser;
-      db.collection("users")
-        .doc(user.uid)
-        .collection("projects")
-        .doc(user.uid)
-        .get()
-        .then((doc) => {
-          if (doc.exists) {
-            const fireProj = doc.data().proj;
+    // const handleUpdate = () => {
+    //   test
+    //   const user = fire.auth().currentUser;
+    //   db.collection("users")
+    //     .doc(user.uid)
+    //     .collection("projects")
+    //     .doc(user.uid)
+    //     .get()
+    //     .then((doc) => {
+    //       if (doc.exists) {
+    //         const fireProj = doc.data().proj;
 
-            if (fireProj !== undefined) {
-              setProjects(doc.data().proj);
-            }
-          } else {
-          }
-        });
-    };
-    handleUpdate();
+    //         if (fireProj !== undefined) {
+    //           setProjects(doc.data().proj);
+    //         }
+    //       } else {
+    //       }
+    //     });
+
+    //   console.log(getCurrentUserProjects())
+
+    //   getCurrentUserProjects().then(
+    //     (result) =>{ setTest(result); console.log(test)})
+    // };
+
+    // console.log(test)
+    // handleUpdate();
+
+    getCurrentUserProjects().then((data) => setProjects(data));
   }, []);
 
   return (
@@ -56,13 +68,21 @@ function MyProjects() {
             <Typography>My Projects</Typography>
 
             <List>
-              {projects.map((task) => (
-                <ListItem divider alignItems="flex-start" button>
+              {projects.projects.map((task) => (
+                <ListItem
+                  divider
+                  alignItems="flex-start"
+                  button
+                  onClick={() => {
+                    props.setTeamPages(<TeamCalendarPage />);
+                    props.setTeamTitles(task.name);
+                  }}
+                >
                   <ListItemIcon>
                     <WorkOutlineIcon></WorkOutlineIcon>
                   </ListItemIcon>
                   <ListItemText>
-                    <td>{task.description}</td>
+                    <td>{task.name}</td>
                   </ListItemText>
                 </ListItem>
               ))}

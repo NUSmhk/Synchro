@@ -1,6 +1,6 @@
 import fire from "../helpers/db.js"
 import axios from "axios";
-import getToken from "../getToken";
+import getToken from "./getToken";
 
 const url = 'http://localhost:3001/api/projects';
 
