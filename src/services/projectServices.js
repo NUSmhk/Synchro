@@ -42,12 +42,13 @@ export async function addUserToProject(email, projectId) {
         email: email
     }
 
-    try {
-        const res = axios.put(url + '/' + projectId + '/users', payload, header);
-        return res.data;
-    } catch (err) {
-        console.log(err);
-    }
+    await axios.put(url + '/' + projectId + '/users', payload, header)
+        .then(res => {
+            return res.data;
+        })
+        .catch(err => {
+            throw new Error(err.response.data);
+        })
 }
 
 /**

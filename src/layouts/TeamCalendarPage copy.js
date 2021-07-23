@@ -27,6 +27,7 @@ import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import CancelIcon from "@material-ui/icons/Cancel";
 import {ValidationForm, TextValidator } from "react-material-ui-form-validator";
 import {getCurrentUserProjects} from "../services/userServices"
 import {addUserToProject} from "../services/projectServices"
@@ -323,6 +324,14 @@ function TeamCalendarPage() {
     }
   };
 
+  const removeMember = (member) => {
+    const newMemberList = members.filter(mem => {
+      return mem !== member;
+    })
+
+    addMembers(newMemberList);
+  }
+
   const addEventDialog = (start, end, openDia, closeDia) => {
     return (
       <Dialog // Pop out for Add Event
@@ -445,19 +454,37 @@ function TeamCalendarPage() {
 
     //error handling for members, need to add checks for existence of members
     if (newMember === "") {
-      addMembers([...members]);
       toast.error(
         "Please fill in Email of a Group Member that you want to add"
       );
     } else {
-      addMembers([
-        ...members,
-        {
-          description: newMember,
-        },
-      ]);
+    //  console.log(addUserToProject(newMember, projID).then(response => { addMembers([
+    //     ...members,
+    //     {
+    //       description: newMember,
+    //     },
+    //   ])}).catch(e => {
+    //     toast.error(e.message);
+    //     console.log("ERROR")
+    //   }))
 
-      addUserToProject(newMember, projID).catch(toast.error("User's Email does not exist"))
+      
+       addUserToProject(newMember, projID).then(
+       (result) => {
+         console.log(result)
+        addMembers([
+          ...members,
+          {
+            description: newMember,
+          },
+        ])
+       }, 
+       (error) => {
+        toast.error(error.message);
+       }
+
+       )
+      
 
     }
   };
@@ -500,17 +527,23 @@ function TeamCalendarPage() {
               <br></br>
 
               <List>
-                {members.map((task, index) => (
+              {members.map((member, index) => (
                   <ListItem divider alignItems="flex-start">
                     <ListItemIcon>
                       <GroupIcon></GroupIcon>
                     </ListItemIcon>
                     <ListItemText>
-                      <td>{index + 1}. </td>
-                      <td>{task.description}</td>
+                      <td>{index + 1 + ". "} </td>
+                      <td>{member.description}</td>
                     </ListItemText>
+                    <td>
+                  <IconButton color="secondary" onClick={(e) => removeMember(member)}>
+                    <CancelIcon></CancelIcon>
+                    </IconButton>
+                    </td>
 
                   </ListItem>
+                  
                 ))}
               </List>
 
