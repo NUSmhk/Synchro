@@ -25,7 +25,7 @@ export async function createUser(displayName) {
     }
 }
 
-// Get user information (displayName, email) given their uid
+// Get user information (displayName, email) given their uid // TODO: Current info instead?
 export async function getUserInfo(uid) {
     const header = await getToken();
 
@@ -68,7 +68,7 @@ export async function getCurrentUserEvents() {
 }
 
 /**
- * Change current user info
+ * Change current user's basic info (email, displayName)
  */
  export async function changeCurrentUserInfo(userInfo) {
     const user = fire.auth().currentUser;
@@ -94,7 +94,7 @@ export async function addNewProjectToCurrentUser(projectInfo) {
     const header = await getToken();
 
     try {
-        const res = axios.put(url + '/' + uid + '/projects', projectInfo, header);
+        const res = axios.post(url + '/' + uid + '/projects', projectInfo, header);
         return res.data;
     } catch (err) {
         console.log(err);
@@ -111,7 +111,41 @@ export async function addNewProjectToCurrentUser(projectInfo) {
     const header = await getToken();
 
     try {
-        const res = axios.put(url + '/' + uid + '/events', eventInfo, header);
+        const res = axios.post(url + '/' + uid + '/events', eventInfo, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+/**
+ * Modifies the current user's event using the given eventInfo (title, start, end)
+ */
+export async function modifyUserEvent(eventInfo, eventId) {
+    const user = fire.auth().currentUser;
+    const uid = user.uid;
+
+    const header = await getToken();
+
+    try {
+        const res = axios.put(url + '/' + uid + '/events/' + eventId, eventInfo, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+/**
+ * Deletes the current user's event
+ */
+ export async function deleteUserEvent(eventId) {
+    const user = fire.auth().currentUser;
+    const uid = user.uid;
+
+    const header = await getToken();
+
+    try {
+        const res = axios.delete(url + '/' + uid + '/events/' + eventId, header);
         return res.data;
     } catch (err) {
         console.log(err);

@@ -35,7 +35,19 @@ export async function getProject(projectId) {
     }
 }
 
-// Adds the user with the given email to the given project
+// Change project's basic info (name, endDate)
+export async function changeProjectInfo(projectId, projectInfo) {
+    const header = await getToken();
+
+    try {
+        const res = await axios.put(url + '/' + projectId, projectInfo, header);
+        return res.data;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Adds the user with the given email to the given project and updates the user's project list
 export async function addUserToProject(email, projectId) {
     const header = await getToken();
     const payload = {
@@ -51,18 +63,62 @@ export async function addUserToProject(email, projectId) {
         })
 }
 
-/**
- * Creates an event using the given eventInfo and adds it to the project's list of events
- */
- export async function addNewEventToProject(eventInfo, projectId) {
+// Removes the user with the given uid from the given project and updates the user's project list
+export async function removeUserFromProject(uid, projectId) {
     const header = await getToken();
+    const payload = {
+        uid: uid
+    }
 
     try {
-        const res = axios.put(url + '/' + projectId + '/events', eventInfo, header);
+        const res = axios.delete(url + '/' + projectId + '/users', payload, header);
         return res.data;
     } catch (err) {
         console.log(err);
     }
 }
+
+/**
+ * Creates an event using the given eventInfo (title, start, end) and adds it to the project's list of events
+ */
+ export async function addNewEventToProject(eventInfo, projectId) {
+    const header = await getToken();
+
+    try {
+        const res = axios.post(url + '/' + projectId + '/events', eventInfo, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+/**
+ * Modifies an event using the given eventInfo (title, start, end)
+ */
+ export async function modifyProjectEvent(eventInfo, projectId, eventId) {
+    const header = await getToken();
+
+    try {
+        const res = axios.put(url + '/' + projectId + '/events/' + eventId, eventInfo, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+/**
+ * Deletes an event
+ */
+ export async function deleteProjectEvent(projectId, eventId) {
+    const header = await getToken();
+
+    try {
+        const res = axios.delete(url + '/' + projectId + '/events/' + eventId, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 
 // TODO: Delete/modify project
