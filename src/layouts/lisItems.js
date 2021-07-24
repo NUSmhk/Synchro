@@ -46,6 +46,10 @@ function MainListItems(props) {
   props.setTitles(title)
   }
 
+  const setPage = (page) => {
+    props.setPages(page)
+  }
+
   return (
     <div>
       <MenuItem
@@ -67,7 +71,7 @@ function MainListItems(props) {
         button
         onClick={() => {
           setSelected(2);
-          props.setPages(<CalendarPage />);
+          props.setPages(<CalendarPage setPage={setPage} />);
           props.setTitles("My Calendar");
         }}
         selected={selected === 2}

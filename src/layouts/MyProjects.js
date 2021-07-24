@@ -55,6 +55,7 @@ function MyProjects(props) {
     // handleUpdate();
 
     getCurrentUserProjects().then((data) => setProjects(data));
+  
   }, []);
 
   return (
@@ -68,13 +69,13 @@ function MyProjects(props) {
             <Typography>My Projects</Typography>
 
             <List>
-              {projects.projects.map((task) => (
+              {projects.projects.map((task, index) => (
                 <ListItem
                   divider
                   alignItems="flex-start"
                   button
                   onClick={() => {
-                    props.setTeamPages(<TeamCalendarPage />);
+                    props.setTeamPages(<TeamCalendarPage projIndex={index} setProjTitle={props.setTeamTitles}/>);
                     props.setTeamTitles(task.name);
                   }}
                 >

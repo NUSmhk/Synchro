@@ -63,15 +63,12 @@ export async function addUserToProject(email, projectId) {
         })
 }
 
-// Removes the user with the given uid from the given project and updates the user's project list
-export async function removeUserFromProject(uid, projectId) {
+// Removes the user with the given userId from the given project and updates the user's project list
+export async function removeUserFromProject(userId, projectId) {
     const header = await getToken();
-    const payload = {
-        uid: uid
-    }
 
     try {
-        const res = axios.delete(url + '/' + projectId + '/users', payload, header);
+        const res = axios.delete(url + '/' + projectId + '/users/' + userId, header);
         return res.data;
     } catch (err) {
         console.log(err);

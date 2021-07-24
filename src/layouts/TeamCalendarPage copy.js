@@ -30,11 +30,11 @@ import { toast } from "react-toastify";
 import CancelIcon from "@material-ui/icons/Cancel";
 import {ValidationForm, TextValidator } from "react-material-ui-form-validator";
 import {getCurrentUserProjects} from "../services/userServices"
-import {addUserToProject} from "../services/projectServices"
+import {addUserToProject, changeProjectInfo, getProject, removeUserFromProject} from "../services/projectServices"
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
-function TeamCalendarPage() {
+function TeamCalendarPage(props) {
   const classes = useStyles();
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
@@ -43,11 +43,13 @@ function TeamCalendarPage() {
 
   const [members, addMembers] = useState([{description: fire.auth().currentUser.email}]);
   const [newMember, addNewMember] = useState("");
+  
 
   const [openImportCal, setOpenImportCal] = useState(false);
   const [openSlotAddEvent, setOpenSlotAddEvent] = useState(false);
   const [openMemberList, setOpenmemberList] = useState(false);
-  const [projID, setProjID] = useState("");
+  const [projID, setProjID] = useState();
+  const [openProjInfo, setOpenProjInfo] = useState(false);
 
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
@@ -114,6 +116,8 @@ function TeamCalendarPage() {
   const [slotDatetime2, setSlotDatetime2] = useState("");
 
   const [event, setEvents] = useState([]);
+  const [endOfProj, setEndOfProj] = useState(currDateTime);
+  const [projName, setProjName] = useState("");
 
   const ical = require("cal-parser");
 
@@ -174,6 +178,11 @@ function TeamCalendarPage() {
     setOpenmemberList(true);
   }
 
+  const handleClickOpenProjInfo = () => {
+    // To Open Proj Info
+    setOpenProjInfo(true);
+  }
+ 
   function getRandomColor() {
     // Random colouring of events generated whenever an event is added
     var letters = "0123456789ABCDEF";
@@ -233,16 +242,32 @@ function TeamCalendarPage() {
  
   const handleCloseMemberList = () => {
     setOpenmemberList(false);
+    addNewMember("");
+  }
+
+  const handleCloseProjinfo = () => {
+    setOpenProjInfo(false);
+    setEndOfProj(currDateTime);
+    setProjName("");
   }
 
   const handleNewMember = (event) => {
     addNewMember(event.target.value)
   }
 
+  const handleEndOfProj = (event) => {
+    setEndOfProj(event.target.value)
+  }
+
+  const handleProjName = (event) => {
+    setProjName(event.target.value)
+  }
+
   useEffect(() => {
     // To load Cal page using database everytime component refreshes/revisted
     handleUpdate();
-    getCurrentUserProjects().then(result => {setProjID(result.projects[0]._id); console.log(result.projects)})
+    getCurrentUserProjects().then(result => {setProjID(result.projects[props.projIndex]._id); console.log(result.projects[props.projIndex].name);return (
+      getProject(result.projects[0]._id))}).then(result => { addMembers(result.users.map(mem => ({description: mem.email, uid: mem._id})));})
   }, []);
 
   const handleImport = (event) => {
@@ -263,7 +288,7 @@ function TeamCalendarPage() {
 
     reader.onload = () => {
       const parsed = ical.parseString(reader.result);
-      console.log(parsed);
+   
 
       parsed.events.map((e) => {
         if (e.hasOwnProperty("recurrenceRule")) {
@@ -329,7 +354,34 @@ function TeamCalendarPage() {
       return mem !== member;
     })
 
-    addMembers(newMemberList);
+    addMembers(newMemberList)
+
+  
+
+    removeUserFromProject(member.uid, projID);
+
+
+    toast.success("Member removed successfully!")
+  }
+
+  const handleUpdateProjName = () => {
+
+    if (projName !== "") {
+
+    changeProjectInfo(projID, {name: projName} ); 
+    getCurrentUserProjects().then(result => {props.setProjTitle(result.projects[props.projIndex].name)});
+    toast.success("Project Name changed successfully!");
+    } else {
+      toast.error("Please fill in a new Project Name")
+    }
+
+  }
+
+  const handleUpdateProjEndDate = () => {
+    
+    changeProjectInfo(projID, {endDate: endOfProj })
+    toast.success("End of Project changed successfully!")
+
   }
 
   const addEventDialog = (start, end, openDia, closeDia) => {
@@ -407,6 +459,66 @@ function TeamCalendarPage() {
     );
   };
 
+  const projInfoDialog = () => {
+      return (
+        <Dialog // Pop out for Add Event
+          open={openProjInfo}
+          onClose={handleCloseProjinfo}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Update Project Information</DialogTitle>
+          <DialogContent style={{textAlign: 'center'}}>
+
+          <TextField onChange={handleProjName} label="New Project Name" variant="outlined" />
+          <br></br>
+          <br></br>
+          <Grid item >
+                
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdateProjName}
+                  fullWidth
+
+                >
+                  {" "}
+                  UPDATE PROJECT NAME{" "}
+                </Button>
+
+              </Grid>
+          <br></br>
+          <TextField
+            id="datetime-local"
+            label="End of Project"
+            type="datetime-local"
+            defaultValue={currDateTime}
+            className={classes.textField}
+            onChange={handleEndOfProj}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+  
+             <br></br>
+             <br></br>
+              <Grid item>
+                
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleUpdateProjEndDate}
+                  fullWidth
+                >
+                  {" "}
+                  UPDATE END OF PROJECT{" "}
+                </Button>
+              </Grid>
+     
+          </DialogContent>
+        </Dialog>
+      );
+    };
+
   const importCalDialog = () => {
     return (
       <Dialog
@@ -471,13 +583,14 @@ function TeamCalendarPage() {
       
        addUserToProject(newMember, projID).then(
        (result) => {
-         console.log(result)
+
         addMembers([
           ...members,
           {
             description: newMember,
           },
-        ])
+        ]);
+        toast.success("Member added successfully!")
        }, 
        (error) => {
         toast.error(error.message);
@@ -537,9 +650,12 @@ function TeamCalendarPage() {
                       <td>{member.description}</td>
                     </ListItemText>
                     <td>
+                    {index !== 0 ?
                   <IconButton color="secondary" onClick={(e) => removeMember(member)}>
                     <CancelIcon></CancelIcon>
                     </IconButton>
+                    : ""
+                      }
                     </td>
 
                   </ListItem>
@@ -547,33 +663,7 @@ function TeamCalendarPage() {
                 ))}
               </List>
 
-          <Grid
-            container
-            className={classes.buttons}
-            spacing={3}
-            justify="flex-end"
-          >
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleAddEvent}
-              >
-                {" "}
-                ADD EVENT{" "}
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCloseMemberList}
-              >
-                {" "}
-                CANCEL{" "}
-              </Button>
-            </Grid>
-          </Grid>
+    
           
         </DialogContent>
       </Dialog>
@@ -605,6 +695,20 @@ function TeamCalendarPage() {
         spacing={3}
         justify="flex-end"
       >
+
+        <Grid item>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleClickOpenProjInfo}
+            startIcon={<AddToQueueIcon />}
+          >
+            {" "}
+            Update Project{" "}
+          </Button>
+
+          {projInfoDialog()}
+        </Grid>
         <Grid item>
           <Button
             variant="contained"
