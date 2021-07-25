@@ -630,6 +630,7 @@ function CalendarPage(props) {
         {ModifyEventDialog()}
 
         <BigCalendar
+        showMultiDayTimes={true}
           selectable
           events={event}
           defaultView="week"

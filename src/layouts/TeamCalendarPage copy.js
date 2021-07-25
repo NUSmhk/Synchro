@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
   makeStyles,
@@ -14,7 +14,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Typography
+  Typography,
 } from "@material-ui/core";
 
 import { fire, db } from "../helpers/db";
@@ -28,22 +28,30 @@ import GroupIcon from "@material-ui/icons/Group";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
 import CancelIcon from "@material-ui/icons/Cancel";
-import {ValidationForm, TextValidator } from "react-material-ui-form-validator";
-import {getCurrentUserProjects} from "../services/userServices"
-import {addUserToProject, changeProjectInfo, getProjectUsers, removeUserFromProject} from "../services/projectServices"
+import { getCurrentUserProjects } from "../services/userServices";
+import {
+  addNewEventToProject,
+  addUserToProject,
+  changeProjectInfo,
+  getProjectEvents,
+  getProjectUsers,
+  removeUserFromProject,
+} from "../services/projectServices";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
 function TeamCalendarPage(props) {
+  const [updater, setUpdater] = useState(0);
   const classes = useStyles();
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const [members, addMembers] = useState([{description: fire.auth().currentUser.email}]);
+  const [members, addMembers] = useState([
+    { description: fire.auth().currentUser.email },
+  ]);
   const [newMember, addNewMember] = useState("");
-  
 
   const [openImportCal, setOpenImportCal] = useState(false);
   const [openSlotAddEvent, setOpenSlotAddEvent] = useState(false);
@@ -115,35 +123,90 @@ function TeamCalendarPage(props) {
   const [slotDatetime1, setSlotDatetime1] = useState("");
   const [slotDatetime2, setSlotDatetime2] = useState("");
 
-  const [event, setEvents] = useState([]);
+  const [event, setEvents] = useState([
+    { mergedEvents: [], projectEvents: [] },
+  ]);
   const [endOfProj, setEndOfProj] = useState(currDateTime);
   const [projName, setProjName] = useState("");
 
   const ical = require("cal-parser");
 
-  const handleUpdate = () => {
-    // To update current Calendar on page
-    //test
-    const user = fire.auth().currentUser;
-    db.collection("users")
-      .doc(user.uid)
-      .collection("Events")
-      .doc(user.uid)
-      .get()
-      .then((doc) => {
-        if (doc.exists) {
-          const fireEvent = doc.data().events;
+  const useDidMountEffect = (func, deps) => {
+    const didMount = useRef(false);
 
-          if (fireEvent !== undefined) {
-            fireEvent.map((obj) => {
-              obj.start = obj.start.toDate();
-              obj.end = obj.end.toDate();
-            });
-            setEvents(fireEvent);
-          }
-        } else {
-        }
-      });
+    useEffect(() => {
+      if (didMount.current) func();
+      else didMount.current = true;
+    }, deps);
+  };
+
+  const updateCal = (ID) => {
+    // To update current Calendar on page
+    //test\
+
+    // getProjectEvents(ID)
+    //   .then((result) => {
+    //     console.log(result);
+    //     return result.mergedEvents.map((eachEvent) => ({
+    //       title: eachEvent.title,
+    //       bgColor: "#FF0000",
+    //       start: new Date(eachEvent.start),
+    //       end: new Date(eachEvent.end),
+    //       id: eachEvent._id,
+    //     }));
+    //   })
+
+    //   .then((result) => {
+    //     const blockedEvents = result;
+
+    //     getProjectEvents(ID).then((result) => {
+    //       console.log(result)
+    //       setEvents(
+    //         blockedEvents,
+    //         result.projectEvents.map((eachEvent) => ({
+    //           title: eachEvent.title,
+    //           bgColor: "#00FF00",
+    //           start: new Date(eachEvent.start),
+    //           end: new Date(eachEvent.end),
+    //           id: eachEvent._id,
+    //         }))
+    //       );
+    //     });
+    //   });
+
+
+      getProjectEvents(ID)
+      .then((result) => {
+        console.log(result);
+        const redEvents = 
+
+        result.mergedEvents.map((eachEvent) => ({
+          title: eachEvent.title,
+          bgColor: "#FF0000",
+          start: new Date(eachEvent.start),
+          end: new Date(eachEvent.end),
+          id: eachEvent._id,
+        }));
+
+        const teamEvents = result.projectEvents.map((eachEvent) => ({
+          title: eachEvent.title,
+          bgColor: "#00FF00",
+          start: new Date(eachEvent.start),
+          end: new Date(eachEvent.end),
+          id: eachEvent._id,
+        }))
+
+        return redEvents.concat(teamEvents);
+      }).then((result) => {
+        
+        setEvents(result)
+
+      })
+    
+  };
+
+  const handleUpdateCal = () => {
+    setUpdater(updater + 1);
   };
 
   const handleEventName = (event) => {
@@ -176,13 +239,13 @@ function TeamCalendarPage(props) {
   const handleClickOpenMemberList = () => {
     // To open Member List
     setOpenmemberList(true);
-  }
+  };
 
   const handleClickOpenProjInfo = () => {
     // To Open Proj Info
     setOpenProjInfo(true);
-  }
- 
+  };
+
   function getRandomColor() {
     // Random colouring of events generated whenever an event is added
     var letters = "0123456789ABCDEF";
@@ -201,23 +264,43 @@ function TeamCalendarPage(props) {
     } else if (datetime1 > datetime2) {
       toast.error("Please select valid timings");
     } else {
-      const user = fire.auth().currentUser;
-      db.collection("users")
-        .doc(user.uid)
-        .collection("Events")
-        .doc(user.uid)
-        .update({
-          events: firebase.firestore.FieldValue.arrayUnion({
-            title: eventName,
-            bgColor: getRandomColor(),
-            start: new Date(datetime1),
-            end: new Date(datetime2),
-          }),
-        });
-      handleUpdate();
-      handleCloseAddEvent();
+      addNewEventToProject(
+        {
+          title: eventName,
+          start: new Date(datetime1),
+          end: new Date(datetime2),
+        },
+        projID
+      ).then((result) => {
+        handleUpdateCal();
+        toast.success("Team Event added successfully!");
+
+        handleCloseAddEvent();
+      });
     }
   };
+
+  const handleAddSlotEvent = () => {
+
+    if (eventName === "") {
+      toast.error("Please fill in the Event Name");
+    } else {
+      addNewEventToProject(
+        {
+          title: eventName,
+          start: new Date(slotDatetime1),
+          end: new Date(slotDatetime2),
+        },
+        projID
+      ).then((result) => {
+        handleUpdateCal();
+        toast.success("Team Event added successfully!");
+
+        handleCloseSlotAddEvent();
+      });
+    }
+
+  }
 
   const handleCloseAddEvent = () => {
     // To close Add Event pop out
@@ -239,36 +322,49 @@ function TeamCalendarPage(props) {
     setDatetime2(currDateTime);
     setEventName("");
   };
- 
+
   const handleCloseMemberList = () => {
     setOpenmemberList(false);
     addNewMember("");
-  }
+  };
 
   const handleCloseProjinfo = () => {
     setOpenProjInfo(false);
     setEndOfProj(currDateTime);
     setProjName("");
-  }
+  };
 
   const handleNewMember = (event) => {
-    addNewMember(event.target.value)
-  }
+    addNewMember(event.target.value);
+  };
 
   const handleEndOfProj = (event) => {
-    setEndOfProj(event.target.value)
-  }
+    setEndOfProj(event.target.value);
+  };
 
   const handleProjName = (event) => {
-    setProjName(event.target.value)
-  }
+    setProjName(event.target.value);
+  };
 
   useEffect(() => {
     // To load Cal page using database everytime component refreshes/revisted
-    handleUpdate();
-    getCurrentUserProjects().then(result => {setProjID(result.projects[props.projIndex]._id); console.log(result.projects[props.projIndex].name);return (
-      getProjectUsers(result.projects[props.projIndex]._id))}).then(result => { addMembers(result.map(mem => ({description: mem.email, uid: mem._id})));})
+    getCurrentUserProjects()
+      .then((result) => {
+        setProjID(result.projects[props.projIndex]._id);
+
+        updateCal(result.projects[props.projIndex]._id);
+        return getProjectUsers(result.projects[props.projIndex]._id);
+      })
+      .then((result) => {
+        addMembers(
+          result.map((mem) => ({ description: mem.email, uid: mem._id }))
+        );
+      });
   }, []);
+
+  useDidMountEffect(() => {
+    updateCal(projID);
+  }, [updater]);
 
   const handleImport = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -288,7 +384,6 @@ function TeamCalendarPage(props) {
 
     reader.onload = () => {
       const parsed = ical.parseString(reader.result);
-   
 
       parsed.events.map((e) => {
         if (e.hasOwnProperty("recurrenceRule")) {
@@ -338,7 +433,7 @@ function TeamCalendarPage(props) {
         }
       });
 
-      handleUpdate();
+      // handleUpdate();
     };
 
     if (selectedFile === null || selectedFile.type !== "text/calendar") {
@@ -350,41 +445,37 @@ function TeamCalendarPage(props) {
   };
 
   const removeMember = (member) => {
-    const newMemberList = members.filter(mem => {
+    const newMemberList = members.filter((mem) => {
       return mem !== member;
-    })
+    });
 
-    addMembers(newMemberList)
+    addMembers(newMemberList);
 
-  
-
-    removeUserFromProject(member.uid, projID);
-
-
-    toast.success("Member removed successfully!")
-  }
+    removeUserFromProject(member.uid, projID).then((result) => {
+      handleUpdateCal();
+      toast.success("Member removed successfully!");
+    });
+  };
 
   const handleUpdateProjName = () => {
-
+    console.log(event);
     if (projName !== "") {
-
-    changeProjectInfo(projID, {name: projName} ); 
-    getCurrentUserProjects().then(result => {props.setProjTitle(result.projects[props.projIndex].name)});
-    toast.success("Project Name changed successfully!");
+      changeProjectInfo(projID, { name: projName });
+      getCurrentUserProjects().then((result) => {
+        props.setProjTitle(result.projects[props.projIndex].name);
+      });
+      toast.success("Project Name changed successfully!");
     } else {
-      toast.error("Please fill in a new Project Name")
+      toast.error("Please fill in a new Project Name");
     }
-
-  }
+  };
 
   const handleUpdateProjEndDate = () => {
-    
-    changeProjectInfo(projID, {endDate: endOfProj })
-    toast.success("End of Project changed successfully!")
+    changeProjectInfo(projID, { endDate: endOfProj });
+    toast.success("End of Project changed successfully!");
+  };
 
-  }
-
-  const addEventDialog = (start, end, openDia, closeDia) => {
+  const addEventDialog = (start, end, openDia, closeDia, handleAdd) => {
     return (
       <Dialog // Pop out for Add Event
         open={openDia}
@@ -437,7 +528,7 @@ function TeamCalendarPage(props) {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleAddEvent}
+                onClick={handleAdd}
               >
                 {" "}
                 ADD EVENT{" "}
@@ -447,7 +538,7 @@ function TeamCalendarPage(props) {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={() => handleCloseAddEvent()}
+                onClick={closeDia}
               >
                 {" "}
                 CANCEL{" "}
@@ -460,32 +551,34 @@ function TeamCalendarPage(props) {
   };
 
   const projInfoDialog = () => {
-      return (
-        <Dialog // Pop out for Add Event
-          open={openProjInfo}
-          onClose={handleCloseProjinfo}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">Update Project Information</DialogTitle>
-          <DialogContent style={{textAlign: 'center'}}>
-
-          <TextField onChange={handleProjName} label="New Project Name" variant="outlined" />
+    return (
+      <Dialog // Pop out for Add Event
+        open={openProjInfo}
+        onClose={handleCloseProjinfo}
+        aria-labelledby="form-dialog-title"
+      >
+        <DialogTitle id="form-dialog-title">
+          Update Project Information
+        </DialogTitle>
+        <DialogContent style={{ textAlign: "center" }}>
+          <TextField
+            onChange={handleProjName}
+            label="New Project Name"
+            variant="outlined"
+          />
           <br></br>
           <br></br>
-          <Grid item >
-                
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdateProjName}
-                  fullWidth
-
-                >
-                  {" "}
-                  UPDATE PROJECT NAME{" "}
-                </Button>
-
-              </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpdateProjName}
+              fullWidth
+            >
+              {" "}
+              UPDATE PROJECT NAME{" "}
+            </Button>
+          </Grid>
           <br></br>
           <TextField
             id="datetime-local"
@@ -498,26 +591,24 @@ function TeamCalendarPage(props) {
               shrink: true,
             }}
           />
-  
-             <br></br>
-             <br></br>
-              <Grid item>
-                
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleUpdateProjEndDate}
-                  fullWidth
-                >
-                  {" "}
-                  UPDATE END OF PROJECT{" "}
-                </Button>
-              </Grid>
-     
-          </DialogContent>
-        </Dialog>
-      );
-    };
+
+          <br></br>
+          <br></br>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpdateProjEndDate}
+              fullWidth
+            >
+              {" "}
+              UPDATE END OF PROJECT{" "}
+            </Button>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   const importCalDialog = () => {
     return (
@@ -562,43 +653,38 @@ function TeamCalendarPage(props) {
     );
   };
 
-    const handleAddMembers = () => {
-
+  const handleAddMembers = () => {
     //error handling for members, need to add checks for existence of members
     if (newMember === "") {
       toast.error(
         "Please fill in Email of a Group Member that you want to add"
       );
     } else {
-    //  console.log(addUserToProject(newMember, projID).then(response => { addMembers([
-    //     ...members,
-    //     {
-    //       description: newMember,
-    //     },
-    //   ])}).catch(e => {
-    //     toast.error(e.message);
-    //     console.log("ERROR")
-    //   }))
+      //  console.log(addUserToProject(newMember, projID).then(response => { addMembers([
+      //     ...members,
+      //     {
+      //       description: newMember,
+      //     },
+      //   ])}).catch(e => {
+      //     toast.error(e.message);
+      //     console.log("ERROR")
+      //   }))
 
-      
-       addUserToProject(newMember, projID).then(
-       (result) => {
-
-        addMembers([
-          ...members,
-          {
-            description: newMember,
-          },
-        ]);
-        toast.success("Member added successfully!")
-       }, 
-       (error) => {
-        toast.error(error.message);
-       }
-
-       )
-      
-
+      addUserToProject(newMember, projID).then(
+        (result) => {
+          addMembers([
+            ...members,
+            {
+              description: newMember,
+            },
+          ]);
+          toast.success("Member added successfully!");
+          handleUpdateCal();
+        },
+        (error) => {
+          toast.error(error.message);
+        }
+      );
     }
   };
 
@@ -611,64 +697,60 @@ function TeamCalendarPage(props) {
       >
         <DialogTitle id="form-dialog-title">Project Group Members</DialogTitle>
         <DialogContent>
-        
           <br></br>
-           <Grid container justify="flex-left">
-    
-      
-                <Grid item lg={11}>
-
-                <TextField onChange={handleNewMember} label="Member's Email" variant="outlined" />
-                 
-                </Grid>
-                <Grid item lg={1}>
-                  <IconButton
-    
-                    variant="contained"
-                    color="primary"
-                    style={{ height: 55, width: 50 }}
-                    onClick={handleAddMembers}
-                  >
-                    <AddCircleIcon></AddCircleIcon>
-                  </IconButton>
-                </Grid>
-   
+          <Grid container justify="flex-left">
+            <Grid item lg={11}>
+              <TextField
+                onChange={handleNewMember}
+                label="Member's Email"
+                variant="outlined"
+              />
             </Grid>
+            <Grid item lg={1}>
+              <IconButton
+                variant="contained"
+                color="primary"
+                style={{ height: 55, width: 50 }}
+                onClick={handleAddMembers}
+              >
+                <AddCircleIcon></AddCircleIcon>
+              </IconButton>
+            </Grid>
+          </Grid>
 
-              <br></br>
-              <Typography align="center"> Member List:</Typography>
-              <br></br>
+          <br></br>
+          <Typography align="center"> Member List:</Typography>
+          <br></br>
 
-              <List>
-              {members.map((member, index) => (
-                  <ListItem divider alignItems="flex-start">
-                    <ListItemIcon>
-                      <GroupIcon></GroupIcon>
-                    </ListItemIcon>
-                    <ListItemText>
-                      <td>{index + 1 + ". "} </td>
-                      <td>{member.description}</td>
-                    </ListItemText>
-                    <td>
-                    {index !== 0 ?
-                  <IconButton color="secondary" onClick={(e) => removeMember(member)}>
-                    <CancelIcon></CancelIcon>
+          <List>
+            {members.map((member, index) => (
+              <ListItem divider alignItems="flex-start">
+                <ListItemIcon>
+                  <GroupIcon></GroupIcon>
+                </ListItemIcon>
+                <ListItemText>
+                  <td>{index + 1 + ". "} </td>
+                  <td>{member.description}</td>
+                </ListItemText>
+                <td>
+                  {index !== 0 ? (
+                    <IconButton
+                      color="secondary"
+                      onClick={(e) => removeMember(member)}
+                    >
+                      <CancelIcon></CancelIcon>
                     </IconButton>
-                    : ""
-                      }
-                    </td>
-
-                  </ListItem>
-                  
-                ))}
-              </List>
-
-    
-          
+                  ) : (
+                    ""
+                  )}
+                </td>
+              </ListItem>
+            ))}
+          </List>
         </DialogContent>
       </Dialog>
     );
-  }
+  };
 
   return (
     <main className={classes.content}>
@@ -679,15 +761,16 @@ function TeamCalendarPage(props) {
         currDateTime,
         currDateTime,
         openAddEvent,
-        handleCloseAddEvent
+        handleCloseAddEvent,
+        handleAddEvent
       )}
       {addEventDialog(
         inputDateTime(slotDatetime1),
         inputDateTime(slotDatetime2),
         openSlotAddEvent,
-        handleCloseSlotAddEvent
+        handleCloseSlotAddEvent,
+        handleAddSlotEvent
       )}
-      
 
       <Grid
         container
@@ -695,7 +778,6 @@ function TeamCalendarPage(props) {
         spacing={3}
         justify="flex-end"
       >
-
         <Grid item>
           <Button
             variant="contained"
@@ -753,18 +835,17 @@ function TeamCalendarPage(props) {
 
       <Paper className={classes.paper}>
         <BigCalendar
+          showMultiDayTimes={true}
           selectable
           events={event}
           defaultView="week"
-          scrollToTime={new Date(1970, 1, 1, 6)}
+          scrollToTime={new Date(2000, 1, 1, 6)}
           defaultDate={new Date()}
-          onSelectEvent={(event) => alert(event.title)}
+          onSelectEvent={(event) => console.log(event)}
           onSelectSlot={
             (slotInfo) => {
               setSlotDatetime1(slotInfo.start);
               setSlotDatetime2(slotInfo.end);
-
-        
 
               handleClickOpenSlotAddEvent();
             }
