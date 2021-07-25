@@ -20,10 +20,12 @@ import WorkOutlineIcon from "@material-ui/icons/WorkOutline";
 import { fire, db } from "../helpers/db";
 import Toast from "../Components/Toast";
 import { getCurrentUserProjects } from "../services/userServices";
-import TeamCalendarPage from "./TeamCalendarPage copy";
+import TeamCalendarPage from "./TeamCalendarPage";
+import TeamCalendarPageNM from "./TeamCalendarPageNM";
 import CancelIcon from "@material-ui/icons/Cancel";
-import { deleteProject } from "../services/projectServices";
+import { deleteProject, getProjectUsers } from "../services/projectServices";
 import { toast } from "react-toastify";
+import Profile from "./Profile";
 
 function MyProjects(props) {
   const classes = useStyles();
@@ -99,6 +101,7 @@ function MyProjects(props) {
   //To load My Projects list everytime component loads, using backend's storage of list of projs
   useEffect(() => {
   
+    
     getCurrentUserProjects().then((data) => {setProjects(data); console.log(data)});
     
  
@@ -126,8 +129,23 @@ function MyProjects(props) {
                   alignItems="flex-start"
                   button
                   onClick={() => {
+
+                    getProjectUsers(proj._id).then(result => {
+
+                     if(fire.auth().currentUser.uid === result[0].uid) {
+                        
                     props.setTeamPages(<TeamCalendarPage projIndex={index} setProjTitle={props.setTeamTitles}/>);
                     props.setTeamTitles(proj.name);
+
+                     } else {
+
+                      props.setTeamPages(<TeamCalendarPageNM projIndex={index} projName={proj.name} projEndDate={proj.endDate}/>)
+                      props.setTeamTitles(proj.name);
+
+                     }
+
+                    })
+
                   }}
                 >
                   <ListItemIcon>

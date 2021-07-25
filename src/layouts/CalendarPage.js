@@ -140,15 +140,40 @@ function CalendarPage(props) {
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
       setEvents(
-        result.events.map((eachEvent) => ({
-          title: eachEvent.title,
-          bgColor: "#0000FF",
-          start: new Date(eachEvent.start),
-          end: new Date(eachEvent.end),
-          id: eachEvent._id,
-        }))
+        result.events.map((eachEvent) => {
+        
+        if (eachEvent.hasOwnProperty("project")) {
+          return({  
+            title: eachEvent.title,
+            bgColor: "#ff0000",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: false
+          })
+
+        } else {
+          return({  
+            title: eachEvent.title,
+            bgColor: "#0000FF",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: true
+          })
+
+
+        }
+        
+       
+        
+        
+      })
       );
+      console.log(result)
     });
+
+    
   };
 
   const handleAddSlotEvent = () => {
@@ -218,6 +243,7 @@ function CalendarPage(props) {
         open={openDia}
         onClose={closeDia}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">Add Event</DialogTitle>
         <DialogContent>
@@ -228,6 +254,7 @@ function CalendarPage(props) {
             label="Event Name"
             type="event"
             onChange={handleEventName}
+            fullWidth
           />
           <br></br>
           <TextField
@@ -240,6 +267,7 @@ function CalendarPage(props) {
             InputLabelProps={{
               shrink: true,
             }}
+            fullWidth
           />
           <br></br>
           <TextField
@@ -252,6 +280,7 @@ function CalendarPage(props) {
             InputLabelProps={{
               shrink: true,
             }}
+            fullWidth
           />
           <br></br>
 
@@ -300,17 +329,9 @@ function CalendarPage(props) {
     const handleUpload = () => {
       // When add Import Cal is clicked after selecting file
       const reader = new FileReader();
-      const user = fire.auth().currentUser;
 
-      function getRandomColor() {
-        // Random colouring of events generated whenever an event is added
-        var letters = "0123456789ABCDEF";
-        var color = "#";
-        for (var i = 0; i < 6; i++) {
-          color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
-      }
+
+
 
       reader.onload = () => {
         const parsed = ical.parseString(reader.result);
@@ -334,37 +355,53 @@ function CalendarPage(props) {
               );
 
               if (found === undefined) {
-                db.collection("users")
-                  .doc(user.uid)
-                  .collection("Events")
-                  .doc(user.uid)
-                  .update({
-                    events: firebase.firestore.FieldValue.arrayUnion({
-                      title: e.summary.value.toString(),
-                      bgColor: getRandomColor(),
-                      start: startDate,
-                      end: endDate,
-                    }),
-                  });
+                // db.collection("users")
+                //   .doc(user.uid)
+                //   .collection("Events")
+                //   .doc(user.uid)
+                //   .update({
+                //     events: firebase.firestore.FieldValue.arrayUnion({
+                //       title: e.summary.value.toString(),
+                //       bgColor: getRandomColor(),
+                //       start: startDate,
+                //       end: endDate,
+                //     }),
+                //   });
+
+                addNewEventToCurrentUser({
+                  title: e.summary.value.toString(),
+                  start: startDate,
+                  end: endDate
+                })
+
+
+
               }
             }
           } else {
-            db.collection("users")
-              .doc(user.uid)
-              .collection("Events")
-              .doc(user.uid)
-              .update({
-                events: firebase.firestore.FieldValue.arrayUnion({
-                  title: e.summary.value.toString(),
-                  bgColor: getRandomColor(),
-                  start: new Date(e.dtstart.value),
-                  end: new Date(e.dtend.value),
-                }),
-              });
+            // db.collection("users")
+            //   .doc(user.uid)
+            //   .collection("Events")
+            //   .doc(user.uid)
+            //   .update({
+            //     events: firebase.firestore.FieldValue.arrayUnion({
+            //       title: e.summary.value.toString(),
+            //       bgColor: getRandomColor(),
+            //       start: new Date(e.dtstart.value),
+            //       end: new Date(e.dtend.value),
+            //     }),
+            //   });
+            addNewEventToCurrentUser({
+              title: e.summary.value.toString(),
+              start: new Date(e.dtstart.value),
+              end: new Date(e.dtend.value)
+            })
+
           }
         });
 
-        // handleUpdate();
+        updateCal()
+        toast.success("Events imported successfully!")
       };
 
       if (selectedFile === null || selectedFile.type !== "text/calendar") {
@@ -380,6 +417,7 @@ function CalendarPage(props) {
         open={openImportCal}
         onClose={handleCloseImportCal}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">Import an ics file</DialogTitle>
         <DialogContent>
@@ -478,11 +516,12 @@ function CalendarPage(props) {
         open={openModifyEvent}
         onClose={handleCloseModifyEvent}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">Modify Current Event</DialogTitle>
-        <DialogContent style={{ textAlign: "center" }}>
+        <DialogContent >
           <TextField
-            label="New Project Name"
+            label="New Event Name"
             variant="outlined"
             onChange={handleNewEventName}
           />
@@ -555,7 +594,7 @@ function CalendarPage(props) {
 
   useEffect(() => {
     updateCal();
-    console.log("updated")
+  
   }, [updater]);
 
   
@@ -634,14 +673,22 @@ function CalendarPage(props) {
           selectable
           events={event}
           defaultView="week"
-          scrollToTime={new Date(1970, 1, 1, 6)}
+          scrollToTime={new Date(2000, 1, 1, 6)}
           defaultDate={new Date()}
           onSelectEvent={(event) => {
-            console.log(event);
-            setNewDateTime1(event.start);
-            setNewDateTime2(event.end);
-            setCurrEvent(event.id);
-            handleClickOpenModifyEvent();
+
+            if (event.project) {
+              console.log(event);
+              setNewDateTime1(event.start);
+              setNewDateTime2(event.end);
+              setCurrEvent(event.id);
+              handleClickOpenModifyEvent();
+
+            } else {
+              toast.error("Cannot modify Team events!")
+            }
+
+            
           }}
           onSelectSlot={
             (slotInfo) => {

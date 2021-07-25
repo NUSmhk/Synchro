@@ -21,13 +21,13 @@ function MainListItems(props) {
 
   //Passed down as props to CreateNewProject, to store title in firestore
   const handleProjTitle = (title, endDate) => {
-    db.collection("users")
-      .doc(user.uid)
-      .collection("projects")
-      .doc(user.uid)
-      .update({
-        proj: firebase.firestore.FieldValue.arrayUnion({ description: title }),
-      });
+    // db.collection("users")
+    //   .doc(user.uid)
+    //   .collection("projects")
+    //   .doc(user.uid)
+    //   .update({
+    //     proj: firebase.firestore.FieldValue.arrayUnion({ description: title }),
+    //   });
 
      addNewProjectToCurrentUser({
               name: title,

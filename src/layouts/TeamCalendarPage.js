@@ -36,6 +36,8 @@ import {
   getProjectEvents,
   getProjectUsers,
   removeUserFromProject,
+  modifyProjectEvent,
+  deleteProjectEvent
 } from "../services/projectServices";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
@@ -46,18 +48,18 @@ function TeamCalendarPage(props) {
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
 
-  const [selectedFile, setSelectedFile] = useState(null);
 
   const [members, addMembers] = useState([
     { description: fire.auth().currentUser.email },
   ]);
   const [newMember, addNewMember] = useState("");
+  const [currEvent, setCurrEvent] = useState({});
 
-  const [openImportCal, setOpenImportCal] = useState(false);
   const [openSlotAddEvent, setOpenSlotAddEvent] = useState(false);
   const [openMemberList, setOpenmemberList] = useState(false);
   const [projID, setProjID] = useState();
   const [openProjInfo, setOpenProjInfo] = useState(false);
+  const [openModifyEvent, setOpenModifyEvent] = useState(false);
 
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
@@ -122,6 +124,8 @@ function TeamCalendarPage(props) {
   const [datetime2, setDatetime2] = useState(currDateTime);
   const [slotDatetime1, setSlotDatetime1] = useState("");
   const [slotDatetime2, setSlotDatetime2] = useState("");
+  const [newDateTime1, setNewDateTime1] = useState("");
+  const [newDateTime2, setNewDateTime2] = useState("");
 
   const [event, setEvents] = useState([
     { mergedEvents: [], projectEvents: [] },
@@ -144,48 +148,18 @@ function TeamCalendarPage(props) {
     // To update current Calendar on page
     //test\
 
-    // getProjectEvents(ID)
-    //   .then((result) => {
-    //     console.log(result);
-    //     return result.mergedEvents.map((eachEvent) => ({
-    //       title: eachEvent.title,
-    //       bgColor: "#FF0000",
-    //       start: new Date(eachEvent.start),
-    //       end: new Date(eachEvent.end),
-    //       id: eachEvent._id,
-    //     }));
-    //   })
-
-    //   .then((result) => {
-    //     const blockedEvents = result;
-
-    //     getProjectEvents(ID).then((result) => {
-    //       console.log(result)
-    //       setEvents(
-    //         blockedEvents,
-    //         result.projectEvents.map((eachEvent) => ({
-    //           title: eachEvent.title,
-    //           bgColor: "#00FF00",
-    //           start: new Date(eachEvent.start),
-    //           end: new Date(eachEvent.end),
-    //           id: eachEvent._id,
-    //         }))
-    //       );
-    //     });
-    //   });
-
-
       getProjectEvents(ID)
       .then((result) => {
         console.log(result);
         const redEvents = 
 
         result.mergedEvents.map((eachEvent) => ({
-          title: eachEvent.title,
+          title: "Unavailable Slot",
           bgColor: "#FF0000",
           start: new Date(eachEvent.start),
           end: new Date(eachEvent.end),
           id: eachEvent._id,
+          teamEvent: false
         }));
 
         const teamEvents = result.projectEvents.map((eachEvent) => ({
@@ -194,6 +168,7 @@ function TeamCalendarPage(props) {
           start: new Date(eachEvent.start),
           end: new Date(eachEvent.end),
           id: eachEvent._id,
+          teamEvent: true
         }))
 
         return redEvents.concat(teamEvents);
@@ -209,26 +184,10 @@ function TeamCalendarPage(props) {
     setUpdater(updater + 1);
   };
 
-  const handleEventName = (event) => {
-    setEventName(event.target.value);
-  };
-
-  const handleDatetime1 = (event) => {
-    setDatetime1(event.target.value);
-  };
-
-  const handleDatetime2 = (event) => {
-    setDatetime2(event.target.value);
-  };
 
   const handleClickOpenAddEvent = () => {
     // To open Add Event
     setOpenAddEvent(true);
-  };
-
-  const handleClickOpenImportCal = () => {
-    // To close Import Cal
-    setOpenImportCal(true);
   };
 
   const handleClickOpenSlotAddEvent = () => {
@@ -244,6 +203,11 @@ function TeamCalendarPage(props) {
   const handleClickOpenProjInfo = () => {
     // To Open Proj Info
     setOpenProjInfo(true);
+  };
+
+  const handleClickOpenModifyEvent = () => {
+    // To open Modify event option after clicking on existing event
+    setOpenModifyEvent(true);
   };
 
   function getRandomColor() {
@@ -310,12 +274,6 @@ function TeamCalendarPage(props) {
     setEventName("");
   };
 
-  const handleCloseImportCal = () => {
-    // To close Import Cal pop out
-    setOpenImportCal(false);
-    setSelectedFile(null);
-  };
-
   const handleCloseSlotAddEvent = () => {
     setOpenSlotAddEvent(false);
     setDatetime1(currDateTime);
@@ -334,18 +292,8 @@ function TeamCalendarPage(props) {
     setProjName("");
   };
 
-  const handleNewMember = (event) => {
-    addNewMember(event.target.value);
-  };
-
-  const handleEndOfProj = (event) => {
-    setEndOfProj(event.target.value);
-  };
-
-  const handleProjName = (event) => {
-    setProjName(event.target.value);
-  };
-
+  
+ 
   useEffect(() => {
     // To load Cal page using database everytime component refreshes/revisted
     getCurrentUserProjects()
@@ -366,83 +314,7 @@ function TeamCalendarPage(props) {
     updateCal(projID);
   }, [updater]);
 
-  const handleImport = (event) => {
-    setSelectedFile(event.target.files[0]);
-    const reader = new FileReader();
 
-    reader.onload = () => {
-      const parsed = ical.parseString(reader.result);
-      console.log(parsed);
-    };
-    reader.readAsText(event.target.files[0]);
-  };
-
-  const handleUpload = () => {
-    // When add Import Cal is clicked after selecting file
-    const reader = new FileReader();
-    const user = fire.auth().currentUser;
-
-    reader.onload = () => {
-      const parsed = ical.parseString(reader.result);
-
-      parsed.events.map((e) => {
-        if (e.hasOwnProperty("recurrenceRule")) {
-          const rr = e.recurrenceRule;
-          const times = rr._rrule[0].options.count;
-          const exDate = rr._exdate;
-          const exDateConverted = exDate.map((date) => date.toString());
-
-          for (let i = 1; i < times; i++) {
-            const startDate = new Date(e.dtstart.value);
-            const endDate = new Date(e.dtend.value);
-            startDate.setDate(startDate.getDate() + 7 * i);
-            endDate.setDate(endDate.getDate() + 7 * i);
-
-            const found = exDateConverted.find(
-              (element) => element === startDate.toString()
-            );
-
-            if (found === undefined) {
-              db.collection("users")
-                .doc(user.uid)
-                .collection("Events")
-                .doc(user.uid)
-                .update({
-                  events: firebase.firestore.FieldValue.arrayUnion({
-                    title: e.summary.value.toString(),
-                    bgColor: getRandomColor(),
-                    start: startDate,
-                    end: endDate,
-                  }),
-                });
-            }
-          }
-        } else {
-          db.collection("users")
-            .doc(user.uid)
-            .collection("Events")
-            .doc(user.uid)
-            .update({
-              events: firebase.firestore.FieldValue.arrayUnion({
-                title: e.summary.value.toString(),
-                bgColor: getRandomColor(),
-                start: new Date(e.dtstart.value),
-                end: new Date(e.dtend.value),
-              }),
-            });
-        }
-      });
-
-      // handleUpdate();
-    };
-
-    if (selectedFile === null || selectedFile.type !== "text/calendar") {
-      toast.error("Please select a .ics file");
-    } else {
-      reader.readAsText(selectedFile);
-      handleCloseImportCal();
-    }
-  };
 
   const removeMember = (member) => {
     const newMemberList = members.filter((mem) => {
@@ -476,26 +348,41 @@ function TeamCalendarPage(props) {
   };
 
   const addEventDialog = (start, end, openDia, closeDia, handleAdd) => {
+
+    const handleEventName = (event) => {
+      setEventName(event.target.value);
+    };
+  
+    const handleDatetime1 = (event) => {
+      setDatetime1(event.target.value);
+    };
+  
+    const handleDatetime2 = (event) => {
+      setDatetime2(event.target.value);
+    };
+    
     return (
       <Dialog // Pop out for Add Event
         open={openDia}
         onClose={closeDia}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
-        <DialogTitle id="form-dialog-title">Add Event</DialogTitle>
+        <DialogTitle id="form-dialog-title">Add Team Event</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
             id="event-name"
-            label="Event Name"
+            label="Team Event Name"
             type="event"
             onChange={handleEventName}
+            fullWidth
           />
           <br></br>
           <TextField
             id="datetime-local"
-            label="Event Start"
+            label="Team Event Start"
             type="datetime-local"
             defaultValue={start}
             className={classes.textField}
@@ -503,11 +390,12 @@ function TeamCalendarPage(props) {
             InputLabelProps={{
               shrink: true,
             }}
+            fullWidth
           />
           <br></br>
           <TextField
             id="datetime-local"
-            label="Event End"
+            label="Team Event End"
             type="datetime-local"
             defaultValue={end}
             onChange={handleDatetime2}
@@ -515,6 +403,7 @@ function TeamCalendarPage(props) {
             InputLabelProps={{
               shrink: true,
             }}
+            fullWidth
           />
           <br></br>
 
@@ -531,7 +420,7 @@ function TeamCalendarPage(props) {
                 onClick={handleAdd}
               >
                 {" "}
-                ADD EVENT{" "}
+                ADD TEAM EVENT{" "}
               </Button>
             </Grid>
             <Grid item>
@@ -551,16 +440,27 @@ function TeamCalendarPage(props) {
   };
 
   const projInfoDialog = () => {
+
+    const handleEndOfProj = (event) => {
+      setEndOfProj(event.target.value);
+    };
+  
+    const handleProjName = (event) => {
+      setProjName(event.target.value);
+    };
+  
+
     return (
       <Dialog // Pop out for Add Event
         open={openProjInfo}
         onClose={handleCloseProjinfo}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">
           Update Project Information
         </DialogTitle>
-        <DialogContent style={{ textAlign: "center" }}>
+        <DialogContent >
           <TextField
             onChange={handleProjName}
             label="New Project Name"
@@ -610,48 +510,7 @@ function TeamCalendarPage(props) {
     );
   };
 
-  const importCalDialog = () => {
-    return (
-      <Dialog
-        open={openImportCal}
-        onClose={handleCloseImportCal}
-        aria-labelledby="form-dialog-title"
-      >
-        <DialogTitle id="form-dialog-title">Import an ics file</DialogTitle>
-        <DialogContent>
-          <input type="file" onChange={handleImport}></input>{" "}
-          {/* will setFile to first in array */}
-          <Grid
-            container
-            className={classes.buttons}
-            spacing={3}
-            justify="flex-end"
-          >
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleUpload}
-              >
-                {" "}
-                IMPORT CALENDAR{" "}
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => handleCloseImportCal()}
-              >
-                {" "}
-                CANCEL{" "}
-              </Button>
-            </Grid>
-          </Grid>
-        </DialogContent>
-      </Dialog>
-    );
-  };
+
 
   const handleAddMembers = () => {
     //error handling for members, need to add checks for existence of members
@@ -660,16 +519,6 @@ function TeamCalendarPage(props) {
         "Please fill in Email of a Group Member that you want to add"
       );
     } else {
-      //  console.log(addUserToProject(newMember, projID).then(response => { addMembers([
-      //     ...members,
-      //     {
-      //       description: newMember,
-      //     },
-      //   ])}).catch(e => {
-      //     toast.error(e.message);
-      //     console.log("ERROR")
-      //   }))
-
       addUserToProject(newMember, projID).then(
         (result) => {
           addMembers([
@@ -689,17 +538,23 @@ function TeamCalendarPage(props) {
   };
 
   const memberListDialog = () => {
+
+    const handleNewMember = (event) => {
+      addNewMember(event.target.value);
+    };
+  
     return (
       <Dialog // Pop out for Add Event
         open={openMemberList}
         onClose={handleCloseMemberList}
         aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">Project Group Members</DialogTitle>
         <DialogContent>
           <br></br>
-          <Grid container justify="flex-left">
-            <Grid item lg={11}>
+          <Grid container align="center">
+            <Grid item lg={10}>
               <TextField
                 onChange={handleNewMember}
                 label="Member's Email"
@@ -719,7 +574,7 @@ function TeamCalendarPage(props) {
           </Grid>
 
           <br></br>
-          <Typography align="center"> Member List:</Typography>
+          <Typography> Member List:</Typography>
           <br></br>
 
           <List>
@@ -749,6 +604,143 @@ function TeamCalendarPage(props) {
           </List>
         </DialogContent>
       </Dialog>
+    );
+  };
+
+  const ModifyEventDialog = () => {
+    const [newEventName, setNewEventName] = useState("");
+
+    const handleNewEventName = (event) => {
+      setNewEventName(event.target.value);
+    };
+
+    const handleNewDateTime1 = (event) => {
+      setNewDateTime1(event.target.value);
+    };
+
+    const handleNewDateTime2 = (event) => {
+      setNewDateTime2(event.target.value);
+    };
+
+    const handleCloseModifyEvent = () => {
+      setOpenModifyEvent(false);
+    };
+
+    const handleUpdateEventName = () => {
+      if (newEventName !== "") {
+        modifyProjectEvent({ title: newEventName }, projID, currEvent).then((result) =>
+          handleUpdateCal()
+        );
+        toast.success("Team Event Name updated successfully!")
+        handleCloseModifyEvent();
+      } else {
+        toast.error("Please fill in the New Team Event Name");
+      }
+    };
+
+    const handleUpdateStartEnd = () => {
+      if (newDateTime1 > newDateTime2) {
+        toast.error("Please select valid timings");
+      } else {
+        modifyProjectEvent(
+          { start: newDateTime1, end: newDateTime2 }, projID,
+          currEvent
+        ).then((result) =>
+          handleUpdateCal()
+        );
+        toast.success("Event duration updated successfully!")
+        handleCloseModifyEvent();
+      }
+    };
+
+    const handleDeleteEvent = () => {
+      deleteProjectEvent(projID, currEvent).then((result) =>
+       handleUpdateCal()
+
+      );
+
+      toast.success("Event successfully deleted!")
+      handleCloseModifyEvent();
+    };
+
+    return (
+      <Dialog // Pop out for Add Event
+        open={openModifyEvent}
+        onClose={handleCloseModifyEvent}
+        aria-labelledby="form-dialog-title"
+        style={{ textAlign: "center" }}
+      >
+        <DialogTitle id="form-dialog-title">Modify Current Team Event</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="New Team Event Name"
+            variant="outlined"
+            onChange={handleNewEventName}
+          />
+          <br></br>
+          <br></br>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpdateEventName}
+              fullWidth
+            >
+              {" "}
+              UPDATE TEAM EVENT NAME{" "}
+            </Button>
+          </Grid>
+          <br></br>
+          <TextField
+            id="datetime-local"
+            label="New Event Start"
+            type="datetime-local"
+            defaultValue={inputDateTime(newDateTime1)}
+            className={classes.textField}
+            onChange={handleNewDateTime1}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <br></br>
+          <TextField
+            id="datetime-local"
+            label="New Event End"
+            type="datetime-local"
+            defaultValue={inputDateTime(newDateTime2)}
+            className={classes.textField}
+            onChange={handleNewDateTime2}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <br></br>
+          <br></br>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleUpdateStartEnd}
+              fullWidth
+            >
+              {" "}
+              UPDATE DURATION OF TEAM EVENT{" "}
+            </Button>
+          </Grid>
+          <br></br>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleDeleteEvent}
+            fullWidth
+          >
+            {" "}
+            DELETE CURRENT TEAM EVENT{" "}
+          </Button>
+        </DialogContent>
+      </Dialog>
+    
     );
   };
 
@@ -817,21 +809,9 @@ function TeamCalendarPage(props) {
           </Button>
         </Grid>
 
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            component="label"
-            startIcon={<CalendarTodayIcon />}
-            onClick={handleClickOpenImportCal}
-          >
-            {" "}
-            Import Calendar{" "}
-          </Button>
+      </Grid> 
 
-          {importCalDialog()}
-        </Grid>
-      </Grid>
+      {ModifyEventDialog()}
 
       <Paper className={classes.paper}>
         <BigCalendar
@@ -841,7 +821,20 @@ function TeamCalendarPage(props) {
           defaultView="week"
           scrollToTime={new Date(2000, 1, 1, 6)}
           defaultDate={new Date()}
-          onSelectEvent={(event) => console.log(event)}
+          onSelectEvent={(event) => {
+
+            if (event.teamEvent) {
+
+            setNewDateTime1(event.start)
+            setNewDateTime2(event.end);
+            setCurrEvent(event.id)
+            handleClickOpenModifyEvent();
+
+            } else {
+              toast.error("Cannot modify personal events!")
+            }
+
+          }}
           onSelectSlot={
             (slotInfo) => {
               setSlotDatetime1(slotInfo.start);
