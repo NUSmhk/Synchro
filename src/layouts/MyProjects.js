@@ -11,81 +11,140 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton
 } from "@material-ui/core";
 import WorkOutlineIcon from "@material-ui/icons/WorkOutline";
 import { fire, db } from "../helpers/db";
 import Toast from "../Components/Toast";
 import { getCurrentUserProjects } from "../services/userServices";
 import TeamCalendarPage from "./TeamCalendarPage copy";
+import CancelIcon from "@material-ui/icons/Cancel";
+import { deleteProject } from "../services/projectServices";
+import { toast } from "react-toastify";
 
 function MyProjects(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
 
   const [projects, setProjects] = useState({ projects: [] });
+  const [openConfirmation, setOpenConfirmation] = useState(false);
+  const [delProj, setDelProj] = useState("");
+  const [updater,setUpdater] = useState(0);
+
+  const handleClickOpenConfirmation = (proj) => {
+    setOpenConfirmation(true);
+    setDelProj(proj._id)
+  }
+
+  const handleUpdateProj = () => {
+    setUpdater(updater + 1)
+  }
+
+  const ConfirmationDialog = () => {  
+
+    const handleCloseConfirmation = () => {
+      setOpenConfirmation(false)
+    }
+    
+     const handleDeleteProj = () => {
+       console.log(delProj)
+      deleteProject(delProj).then(result => {toast.success("Project deleted successfully!"); setOpenConfirmation(false); handleUpdateProj()})
+      console.log(delProj)
+   
+    }
+  
+   
+    return (
+      <Dialog // Pop out for Add Event
+        open={openConfirmation}
+        onClose={handleCloseConfirmation}
+        aria-labelledby="form-dialog-title"
+        
+      >
+        <DialogTitle id="form-dialog-title">Confirm Project Deletion?</DialogTitle>
+        <DialogContent>
+         
+        <Typography></Typography>
+
+          <Grid
+            container
+            className={classes.buttons}
+            spacing={6}
+            justify="center"
+          >
+            <Grid item>
+              <Button variant="contained" color="primary" onClick={handleDeleteProj} >
+                {" "}
+                YES{" "}
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button variant="contained" color="secondary" onClick={handleCloseConfirmation}>
+                {" "}
+                NO{" "}
+              </Button>
+            </Grid>
+          </Grid>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+
+
 
   //To load My Projects list everytime component loads, using backend's storage of list of projs
   useEffect(() => {
-    // const handleUpdate = () => {
-    //   test
-    //   const user = fire.auth().currentUser;
-    //   db.collection("users")
-    //     .doc(user.uid)
-    //     .collection("projects")
-    //     .doc(user.uid)
-    //     .get()
-    //     .then((doc) => {
-    //       if (doc.exists) {
-    //         const fireProj = doc.data().proj;
-
-    //         if (fireProj !== undefined) {
-    //           setProjects(doc.data().proj);
-    //         }
-    //       } else {
-    //       }
-    //     });
-
-    //   console.log(getCurrentUserProjects())
-
-    //   getCurrentUserProjects().then(
-    //     (result) =>{ setTest(result); console.log(test)})
-    // };
-
-    // console.log(test)
-    // handleUpdate();
-
-    getCurrentUserProjects().then((data) => setProjects(data));
   
-  }, []);
+    getCurrentUserProjects().then((data) => {setProjects(data); console.log(data)});
+    
+ 
+  
+  }, [updater]);
 
   return (
     <main className={classes.content}>
       <div className={classes.appBarSpacer} />
       <Container maxWidth="xs" className={classes.container}>
-        {/* Chart */}
-        <Grid>
+        {ConfirmationDialog()}
+        <Grid
+
+        wrap='nowrap'
+>    
           <Paper className={fixedHeightPaper} justify="center">
             <Toast position="top-right"></Toast>
             <Typography>My Projects</Typography>
 
             <List>
-              {projects.projects.map((task, index) => (
+              {projects.projects.map((proj, index) => (
+                <Grid>
                 <ListItem
                   divider
                   alignItems="flex-start"
                   button
                   onClick={() => {
                     props.setTeamPages(<TeamCalendarPage projIndex={index} setProjTitle={props.setTeamTitles}/>);
-                    props.setTeamTitles(task.name);
+                    props.setTeamTitles(proj.name);
                   }}
                 >
                   <ListItemIcon>
                     <WorkOutlineIcon></WorkOutlineIcon>
                   </ListItemIcon>
                   <ListItemText>
-                    <td>{task.name}</td>
+                    {proj.name}
                   </ListItemText>
+                  
                 </ListItem>
+
+
+<IconButton color="secondary" onClick={(e) => handleClickOpenConfirmation(proj)}>
+  <CancelIcon></CancelIcon>
+  </IconButton>
+  
+  </Grid> 
               ))}
             </List>
           </Paper>

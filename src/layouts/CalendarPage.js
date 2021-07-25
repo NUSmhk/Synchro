@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
   makeStyles,
@@ -41,6 +41,7 @@ function CalendarPage(props) {
   const [openImportCal, setOpenImportCal] = useState(false);
 
   const [currEvent, setCurrEvent] = useState({});
+  const [updater, setUpdater] = useState(0);
 
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
@@ -112,38 +113,6 @@ function CalendarPage(props) {
 
   const ical = require("cal-parser");
 
-  // const handleUpdate = () => {
-  //   // To update current Calendar on page
-  //   //test
-  //   const user = fire.auth().currentUser;
-  //   db.collection("users")
-  //     .doc(user.uid)
-  //     .collection("Events")
-  //     .doc(user.uid)
-  //     .get()
-  //     .then((doc) => {
-  //       if (doc.exists) {
-  //         const fireEvent = doc.data().events;
-
-  //         if (fireEvent !== undefined) {
-  //           fireEvent.map((obj) => {
-  //             obj.start = obj.start.toDate();
-  //             obj.end = obj.end.toDate();
-  //           });
-
-  //           setEvents(fireEvent.map((eachEvent) =>  (
-  //             {title: eachEvent.title,
-  //             bgColor: "#0000FF",
-  //             start: eachEvent.start,
-  //             end: eachEvent.end  }
-
-  //           )));
-  //         }
-  //       } else {
-  //       }
-  //     });
-  // };
-
   const handleClickOpenAddEvent = () => {
     // To open Add Event
     setOpenAddEvent(true);
@@ -164,14 +133,8 @@ function CalendarPage(props) {
     setOpenModifyEvent(true);
   };
 
-  function getRandomColor() {
-    // Random colouring of events generated whenever an event is added
-    var letters = "0123456789ABCDEF";
-    var color = "#";
-    for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+  const handleUpdateCal = () => {
+    setUpdater(updater + 1);
   }
 
   const updateCal = () => {
@@ -196,8 +159,9 @@ function CalendarPage(props) {
         title: eventName,
         start: new Date(slotDatetime1),
         end: new Date(slotDatetime2),
-      });
-
+      }).then(result => handleUpdateCal())
+      toast.success("Event added successfully!")
+ 
       handleCloseSlotAddEvent();
     }
   };
@@ -210,26 +174,13 @@ function CalendarPage(props) {
     } else if (datetime1 > datetime2) {
       toast.error("Please select valid timings");
     } else {
-      // const user = fire.auth().currentUser;
-      // db.collection("users")
-      //   .doc(user.uid)
-      //   .collection("Events")
-      //   .doc(user.uid)
-      //   .update({
-      //     events: firebase.firestore.FieldValue.arrayUnion({
-      //       title: eventName,
-
-      //       start: new Date(datetime1),
-      //       end: new Date(datetime2),
-      //     }),
-      //   });
-
       addNewEventToCurrentUser({
         title: eventName,
         start: new Date(datetime1),
         end: new Date(datetime2),
-      });
-
+      }).then(result => handleUpdateCal())
+      toast.success("Event added successfully!")
+      
       handleCloseAddEvent();
     }
   };
@@ -247,10 +198,6 @@ function CalendarPage(props) {
     setDatetime1(currDateTime);
     setDatetime2(currDateTime);
     setEventName("");
-  };
-
-  const handleCloseModifyEvent = () => {
-    setOpenModifyEvent(false);
   };
 
   const AddEventDialog = (start, end, openDia, closeDia, handleAdd) => {
@@ -312,7 +259,7 @@ function CalendarPage(props) {
             container
             className={classes.buttons}
             spacing={3}
-            justify="flex-end"
+            justify="center"
           >
             <Grid item>
               <Button variant="contained" color="primary" onClick={handleAdd}>
@@ -354,6 +301,16 @@ function CalendarPage(props) {
       // When add Import Cal is clicked after selecting file
       const reader = new FileReader();
       const user = fire.auth().currentUser;
+
+      function getRandomColor() {
+        // Random colouring of events generated whenever an event is added
+        var letters = "0123456789ABCDEF";
+        var color = "#";
+        for (var i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
 
       reader.onload = () => {
         const parsed = ical.parseString(reader.result);
@@ -432,7 +389,7 @@ function CalendarPage(props) {
             container
             className={classes.buttons}
             spacing={3}
-            justify="flex-end"
+            justify="center"
           >
             <Grid item>
               <Button
@@ -475,11 +432,16 @@ function CalendarPage(props) {
       setNewDateTime2(event.target.value);
     };
 
+    const handleCloseModifyEvent = () => {
+      setOpenModifyEvent(false);
+    };
+
     const handleUpdateEventName = () => {
       if (newEventName !== "") {
         modifyUserEvent({ title: newEventName }, currEvent).then((result) =>
-          toast.success("Event Name updated successfully!")
+          handleUpdateCal()
         );
+        toast.success("Event Name updated successfully!")
         handleCloseModifyEvent();
       } else {
         toast.error("Please fill in the New Event Name");
@@ -494,16 +456,22 @@ function CalendarPage(props) {
           { start: newDateTime1, end: newDateTime2 },
           currEvent
         ).then((result) =>
-          toast.success("Event duration updated successfully!")
+          handleUpdateCal()
         );
+        toast.success("Event duration updated successfully!")
         handleCloseModifyEvent();
       }
     };
 
     const handleDeleteEvent = () => {
-      deleteUserEvent(currEvent).then(result => toast.success("Event successfully deleted!"))
+      deleteUserEvent(currEvent).then((result) =>
+       handleUpdateCal()
+
+      );
+
+      toast.success("Event successfully deleted!")
       handleCloseModifyEvent();
-    }
+    };
 
     return (
       <Dialog // Pop out for Add Event
@@ -571,29 +539,26 @@ function CalendarPage(props) {
           </Grid>
           <br></br>
           <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleDeleteEvent}
-              fullWidth
-            >
-              {" "}
-              DELETE CURRENT EVENT{" "}
-            </Button>
+            variant="contained"
+            color="secondary"
+            onClick={handleDeleteEvent}
+            fullWidth
+          >
+            {" "}
+            DELETE CURRENT EVENT{" "}
+          </Button>
         </DialogContent>
       </Dialog>
+    
     );
   };
 
-  // useEffect(() => {
-  //   // To load Cal page using database everytime component refreshes/revisted
-  //   // handleUpdate();
-  //   updateCal();
-
-  // }, []);
-
   useEffect(() => {
     updateCal();
-  }, [event]);
+    console.log("updated")
+  }, [updater]);
+
+  
 
   return (
     <main className={classes.content}>

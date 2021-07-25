@@ -30,7 +30,7 @@ import { toast } from "react-toastify";
 import CancelIcon from "@material-ui/icons/Cancel";
 import {ValidationForm, TextValidator } from "react-material-ui-form-validator";
 import {getCurrentUserProjects} from "../services/userServices"
-import {addUserToProject, changeProjectInfo, getProject, removeUserFromProject} from "../services/projectServices"
+import {addUserToProject, changeProjectInfo, getProjectUsers, removeUserFromProject} from "../services/projectServices"
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
@@ -267,7 +267,7 @@ function TeamCalendarPage(props) {
     // To load Cal page using database everytime component refreshes/revisted
     handleUpdate();
     getCurrentUserProjects().then(result => {setProjID(result.projects[props.projIndex]._id); console.log(result.projects[props.projIndex].name);return (
-      getProject(result.projects[0]._id))}).then(result => { addMembers(result.users.map(mem => ({description: mem.email, uid: mem._id})));})
+      getProjectUsers(result.projects[props.projIndex]._id))}).then(result => { addMembers(result.map(mem => ({description: mem.email, uid: mem._id})));})
   }, []);
 
   const handleImport = (event) => {

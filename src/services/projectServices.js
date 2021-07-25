@@ -23,17 +23,30 @@ const url = 'http://localhost:3001/api/projects';
 // }
 
 
-// Get project information given the project id
-export async function getProject(projectId) {
+// Given the project _id, get project users
+export async function getProjectUsers(projectId) {
     const header = await getToken();
 
     try {
-        const res = await axios.get(url + '/' + projectId, header);
+        const res = await axios.get(url + '/' + projectId + '/users', header);
         return res.data;
     } catch (err) {
         console.error(err);
     }
 }
+
+// Given the project _id, get project event info and merged user event info for all project users
+export async function getProjectEvents(projectId) {
+    const header = await getToken();
+
+    try {
+        const res = await axios.get(url + '/' + projectId + '/events', header);
+        return res.data;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 
 // Change project's basic info (name, endDate)
 export async function changeProjectInfo(projectId, projectInfo) {
@@ -118,4 +131,14 @@ export async function removeUserFromProject(userId, projectId) {
 }
 
 
-// TODO: Delete/modify project
+// Delete project
+export async function deleteProject(projectId) {
+    const header = await getToken();
+
+    try { 
+        const res = axios.delete(url + '/' + projectId, header);
+        return res.data;
+    } catch (err) {
+        console.log(err);
+    }
+}
