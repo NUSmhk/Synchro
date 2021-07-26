@@ -1,7 +1,8 @@
 import axios from "axios";
 import getToken from "./getToken";
+import apiUrl from "../helpers/axiosConfig.js";
 
-const url = 'http://localhost:3001/api/projects';
+const url = apiUrl + 'projects';
 
 // Given the project _id, get project users
 export async function getProjectUsers(projectId) {

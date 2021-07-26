@@ -1,8 +1,9 @@
 import {fire} from "../helpers/db.js"
 import axios from "axios";
 import getToken from "./getToken";
+import apiUrl from "../helpers/axiosConfig.js";
 
-const url = 'http://localhost:3001/api/users';
+const url = apiUrl + 'users';
 
 // Create user 
 export async function createUser(displayName) {

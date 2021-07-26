@@ -69,7 +69,6 @@ function TeamCalendarPageNM(props) {
 
     getProjectEvents(ID)
       .then((result) => {
-        console.log(result);
         const redEvents = result.mergedEvents.map((eachEvent) => ({
           title: "Unavailable Slot",
           bgColor: "#FF0000",
@@ -103,7 +102,6 @@ function TeamCalendarPageNM(props) {
     // To open Member List
     setOpenmemberList(true);
     handleUpdateCal();
-    console.log(members);
   };
 
   const handleClickOpenProjInfo = () => {
@@ -145,12 +143,7 @@ function TeamCalendarPageNM(props) {
     updateCal(projID);
   }, [updater]);
 
- 
-
-
   const memberListDialog = () => {
-
-
     return (
       <Dialog // Pop out for Add Event
         open={openMemberList}
@@ -201,7 +194,7 @@ function TeamCalendarPageNM(props) {
   };
 
   const handleClickOpenConfirmation = () => {
-        setOpenConfirmation(true);
+    setOpenConfirmation(true);
   };
 
   const ConfirmationDialog = () => {
@@ -210,25 +203,20 @@ function TeamCalendarPageNM(props) {
     };
 
     const handleQuit = () => {
-
-     getUserInfo(fire.auth().currentUser.uid).then((result) => {
-
+      getUserInfo(fire.auth().currentUser.uid).then((result) => {
         removeUserFromProject(result._id, projID).then((result) => {
-
-          props.setQuitPage(<MyProjects/>)
-        })
-     })
+          props.setQuitPage(<MyProjects />);
+        });
+      });
     };
 
     return (
-      <Dialog 
+      <Dialog
         open={openConfirmation}
         onClose={handleCloseConfirmation}
         aria-labelledby="form-dialog-title"
       >
-        <DialogTitle id="form-dialog-title">
-          Confirm Quit Team?
-        </DialogTitle>
+        <DialogTitle id="form-dialog-title">Confirm Quit Team?</DialogTitle>
         <DialogContent>
           <Typography></Typography>
 

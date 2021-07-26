@@ -49,7 +49,7 @@ const NavBar = (props) => {
               edge="start"
               color="inherit"
               aria-label="open drawer"
-              onClick={handleDrawerOpen}
+              onClick={() => handleDrawerOpen()}
               className={clsx(
                 classes.menuButton,
                 openD && classes.menuButtonHidden
@@ -89,7 +89,7 @@ const NavBar = (props) => {
                 paddingRight: 10,
               }}
             />
-            <IconButton onClick={handleDrawerClose}>
+            <IconButton onClick={() => handleDrawerClose()}>
               <ChevronLeftIcon />
             </IconButton>
           </div>
@@ -107,7 +107,7 @@ const NavBar = (props) => {
           </List>
           <Divider />
 
-          <Button variant="contained" color="primary" onClick={handleClose}>
+          <Button variant="contained" color="primary" onClick={() => handleClose()}>
             Logout
           </Button>
         </Drawer>

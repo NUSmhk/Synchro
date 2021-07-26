@@ -158,9 +158,9 @@ function TeamCalendarPage(props) {
           }
         });
 
-       if (new Date(start) >= new Date(endDate)) {
-        toast.error("Please select starting time to be before Project End")
-       } else if (clashing) {
+      if (new Date(start) >= new Date(endDate)) {
+        toast.error("Please select starting time to be before Project End");
+      } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
       } else {
         setOpenSlotAddEvent(true);
@@ -192,7 +192,6 @@ function TeamCalendarPage(props) {
         toast.error("Please fill in the Team Event Name");
       } else if (new Date(slotDatetime1) >= new Date(slotDatetime2)) {
         toast.error("Please select valid timings");
-      
       } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
         handleCloseSlotAddEvent();
@@ -220,7 +219,6 @@ function TeamCalendarPage(props) {
 
     getProjectEvents(ID)
       .then((result) => {
-     
         const redEvents = result.mergedEvents.map((eachEvent) => ({
           title: "Unavailable Slot",
           bgColor: "#FF0000",
@@ -297,7 +295,7 @@ function TeamCalendarPage(props) {
       } else if (new Date(datetime1) >= new Date(datetime2)) {
         toast.error("Please select valid timings");
       } else if (new Date(datetime1) >= new Date(endDate)) {
-        toast.error("Please select starting time to be before Project End")
+        toast.error("Please select starting time to be before Project End");
       } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
         handleUpdateCal();
@@ -382,7 +380,6 @@ function TeamCalendarPage(props) {
   };
 
   const handleUpdateProjName = () => {
-  
     if (projName !== "") {
       changeProjectInfo(projID, { name: projName });
       getCurrentUserProjects().then((result) => {
@@ -466,13 +463,21 @@ function TeamCalendarPage(props) {
             justify="flex-end"
           >
             <Grid item>
-              <Button variant="contained" color="primary" onClick={() => handleAdd()}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleAdd()}
+              >
                 {" "}
                 ADD TEAM EVENT{" "}
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={() => closeDia()}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => closeDia()}
+              >
                 {" "}
                 CANCEL{" "}
               </Button>
@@ -559,12 +564,11 @@ function TeamCalendarPage(props) {
         "Please fill in Email of a Group Member that you want to add"
       );
     } else {
-      getProjectEvents(projID)
-      .then((result) => {
+      getProjectEvents(projID).then((result) => {
         result.projectEvents.forEach((eachEvent) => {
-          deleteProjectEvent(projID, eachEvent._id)
-        })
-      })
+          deleteProjectEvent(projID, eachEvent._id);
+        });
+      });
 
       addUserToProject(newMember, projID).then(
         (result) => {
@@ -584,7 +588,9 @@ function TeamCalendarPage(props) {
                 }))
               );
             });
-          toast.success("Member added successfully! Please re-add all Team Events");
+          toast.success(
+            "Member added successfully! Please re-add all Team Events"
+          );
           handleUpdateCal();
         },
         (error) => {
@@ -632,33 +638,38 @@ function TeamCalendarPage(props) {
           <br></br>
           <Typography> Member List:</Typography>
           <br></br>
-      
+
           <List>
             {members.map((member, index) => (
-              
               <Grid container align="center">
-              <ListItem divider alignItems="flex-start">
-                <ListItemIcon>
-                  <GroupIcon></GroupIcon>
-                </ListItemIcon>
-                <ListItemText>
+                <ListItem divider alignItems="flex-start">
+                  <ListItemIcon>
+                    <GroupIcon></GroupIcon>
+                  </ListItemIcon>
+                  <ListItemText>
+                    <td>
+                      {index +
+                        1 +
+                        ". " +
+                        member.email +
+                        " (" +
+                        member.name +
+                        ")"}
+                    </td>
+                  </ListItemText>
                   <td>
-                    {index + 1 + ". " + member.email + " (" + member.name + ")"}
+                    {index !== 0 ? (
+                      <IconButton
+                        color="secondary"
+                        onClick={(e) => removeMember(member)}
+                      >
+                        <CancelIcon></CancelIcon>
+                      </IconButton>
+                    ) : (
+                      ""
+                    )}
                   </td>
-                </ListItemText>
-                <td>
-                  {index !== 0 ? (
-                    <IconButton
-                      color="secondary"
-                      onClick={(e) => removeMember(member)}
-                    >
-                      <CancelIcon></CancelIcon>
-                    </IconButton>
-                  ) : (
-                    ""
-                  )}
-                </td>
-              </ListItem>
+                </ListItem>
               </Grid>
             ))}
           </List>
@@ -904,7 +915,6 @@ function TeamCalendarPage(props) {
           defaultDate={new Date()}
           onSelectEvent={(event) => {
             if (event.teamEvent) {
-
               setNewDateTime1(event.start);
               setNewDateTime2(event.end);
               setCurrEvent(event.id);
