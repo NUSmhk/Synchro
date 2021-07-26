@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
   makeStyles,
@@ -11,10 +11,9 @@ import {
   TextField,
 } from "@material-ui/core";
 
-import { fire, db } from "../helpers/db";
 import BigCalendar from "react-big-calendar-like-google";
 import moment from "moment";
-import firebase from "firebase";
+
 import AddToQueueIcon from "@material-ui/icons/AddToQueue";
 import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import Toast from "../Components/Toast";
@@ -23,7 +22,6 @@ import {
   addNewEventToCurrentUser,
   deleteUserEvent,
   getCurrentUserEvents,
-  getCurrentUserProjects,
   modifyUserEvent,
 } from "../services/userServices";
 
@@ -168,7 +166,11 @@ function CalendarPage(props) {
         result.events.map((eachEvent) => {
           if (eachEvent.hasOwnProperty("project")) {
             return {
-              title: eachEvent.title + " (Project Name: " + eachEvent.project.name + ")",
+              title:
+                eachEvent.title +
+                " (Project Name: " +
+                eachEvent.project.name +
+                ")",
               bgColor: "#ff0000",
               start: new Date(eachEvent.start),
               end: new Date(eachEvent.end),
@@ -187,7 +189,6 @@ function CalendarPage(props) {
           }
         })
       );
-      console.log(result);
     });
   };
 
@@ -259,10 +260,11 @@ function CalendarPage(props) {
 
       if (eventName === "") {
         toast.error("Please fill in the Event Name");
-      } else if (datetime1 > datetime2) {
+      } else if (new Date(datetime1) >= new Date(datetime2)) {
         toast.error("Please select valid timings");
       } else if (clashing) {
         toast.error("Cannot add event that clashes with Team events!");
+
         handleUpdateCal();
       } else {
         addNewEventToCurrentUser({
@@ -357,13 +359,21 @@ function CalendarPage(props) {
             justify="center"
           >
             <Grid item>
-              <Button variant="contained" color="primary" onClick={handleAdd}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleAdd()}
+              >
                 {" "}
                 ADD EVENT{" "}
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={closeDia}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => closeDia()}
+              >
                 {" "}
                 CANCEL{" "}
               </Button>
@@ -387,7 +397,6 @@ function CalendarPage(props) {
 
       reader.onload = () => {
         const parsed = ical.parseString(reader.result);
-        console.log(parsed);
       };
       reader.readAsText(event.target.files[0]);
     };
@@ -400,7 +409,6 @@ function CalendarPage(props) {
 
       reader.onload = () => {
         const parsed = ical.parseString(reader.result);
-        console.log(parsed);
 
         parsed.events.map((e) => {
           if (e.hasOwnProperty("recurrenceRule")) {
@@ -453,7 +461,6 @@ function CalendarPage(props) {
                       eachEvent.end <= importEvent.end)
                   ) {
                     clashing = true;
-                    console.log("clashes true");
                   }
                 });
               });
@@ -501,7 +508,7 @@ function CalendarPage(props) {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleUpload}
+                onClick={() => handleUpload()}
               >
                 {" "}
                 IMPORT CALENDAR{" "}
@@ -576,10 +583,9 @@ function CalendarPage(props) {
             }
           });
 
-        if (newDateTime1 >= newDateTime2) {
+        if (new Date(newDateTime1) >= new Date(newDateTime2)) {
           toast.error("Please select valid timings");
-        }
-        if (clashing) {
+        } else if (clashing) {
           toast.error("Modified event is clashing with Team events!");
           handleUpdateCal();
         } else {
@@ -620,7 +626,7 @@ function CalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateEventName}
+              onClick={() => handleUpdateEventName()}
               fullWidth
             >
               {" "}
@@ -658,7 +664,7 @@ function CalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateStartEnd}
+              onClick={() => handleUpdateStartEnd()}
               fullWidth
             >
               {" "}
@@ -669,7 +675,7 @@ function CalendarPage(props) {
           <Button
             variant="contained"
             color="secondary"
-            onClick={handleDeleteEvent}
+            onClick={() => handleDeleteEvent()}
             fullWidth
           >
             {" "}
@@ -715,7 +721,7 @@ function CalendarPage(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleClickOpenAddEvent}
+            onClick={() => handleClickOpenAddEvent()}
             startIcon={<AddToQueueIcon />}
           >
             {" "}
@@ -729,7 +735,7 @@ function CalendarPage(props) {
             color="primary"
             component="label"
             startIcon={<CalendarTodayIcon />}
-            onClick={handleClickOpenImportCal}
+            onClick={() => handleClickOpenImportCal()}
           >
             {" "}
             Import Calendar{" "}
@@ -751,7 +757,6 @@ function CalendarPage(props) {
           defaultDate={new Date()}
           onSelectEvent={(event) => {
             if (!event.project) {
-              console.log(event);
               setNewDateTime1(event.start);
               setNewDateTime2(event.end);
               setCurrEvent(event.id);

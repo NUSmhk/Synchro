@@ -11,11 +11,11 @@ import {
 } from "@material-ui/core";
 import AccountCircleIcon from "@material-ui/icons/AccountCircle";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import { fire, db } from "../helpers/db";
+import { fire } from "../helpers/db";
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {changeCurrentUserInfo} from "../services/userServices"
+import { changeCurrentUserInfo } from "../services/userServices";
 
 function Profile() {
   const user = fire.auth().currentUser;
@@ -64,10 +64,8 @@ function Profile() {
 
   //When form is submitted after filling in profile update
   const handleUpdate = () => {
-
     //Error handling for profile name
     if (name !== "") {
-
       //Update user's name in firestore
       user
         .updateProfile({
@@ -76,16 +74,7 @@ function Profile() {
         .then(() => {
           setchangedName(name);
 
-          changeCurrentUserInfo({displayName: name})
-
-          db.collection("users")
-            .doc(user.uid)
-            .collection("userInfo")
-            .doc(user.uid)
-            .update({
-              Name: name,
-            });
-
+          changeCurrentUserInfo({ displayName: name });
           toast.success("Name changed successfully");
         })
         .catch((error) => {
@@ -94,22 +83,13 @@ function Profile() {
     }
     //Error handling for email
     if (email !== "") {
-
       //Update user's email in firestore
       user
         .updateEmail(email)
         .then(() => {
           setchangedEmail(email);
 
-          changeCurrentUserInfo({email: email})
-          
-          db.collection("users")
-            .doc(user.uid)
-            .collection("userInfo")
-            .doc(user.uid)
-            .update({
-              Email: email,
-            });
+          changeCurrentUserInfo({ email: email });
 
           toast.success("Email changed successfully");
         })

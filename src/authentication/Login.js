@@ -13,7 +13,7 @@ import {
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 import { fire } from "../helpers/db";
-import { ToastContainer, toast } from "react-toastify";
+import {toast } from "react-toastify";
 import Toast from "../Components/Toast";
 
 const Login = (props) => {

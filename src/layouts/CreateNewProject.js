@@ -7,27 +7,17 @@ import {
   Typography,
   Grid,
   Paper,
-  IconButton,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   TextField,
 } from "@material-ui/core";
-import AddCircleIcon from "@material-ui/icons/AddCircle";
-import GroupIcon from "@material-ui/icons/Group";
+
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import { fire, db } from "../helpers/db";
+
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
-import { addUserToProject } from "../services/projectServices";
 
 function CreateNewProject(props) {
   const classes = useStyles();
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
-
-  // const [members, addMembers] = useState([]);
-  // const [newMember, addNewMember] = useState("");
   const [projectTitle, addProjectTitle] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
 
@@ -39,70 +29,19 @@ function CreateNewProject(props) {
     setEndDateTime(event.target.value);
   };
 
-  // //To handle adding members in project creation
-  // const handleAddMembers = () => {
-
-  //   //error handling for members, need to add checks for existence of members
-  //   if (newMember === "") {
-  //     addMembers([...members]);
-  //     toast.error(
-  //       "Please fill in Email of a Group Member that you want to add"
-  //     );
-  //   } else {
-  //     addMembers([
-  //       ...members,
-  //       {
-  //         description: newMember,
-  //       },
-  //     ]);
-
-  //     // addUserToProject(newMember, )
-
-  //   }
-  // };
-
   //To add into firebase under user's project when submit button is pressed
   const handleNewProject = () => {
-    var found;
-    const user = fire.auth().currentUser;
-    db.collection("users")
-      .doc(user.uid)
-      .collection("projects")
-      .doc(user.uid)
-      .get()
-      .then((doc) => {
-        //To check for duplicated project name
-        if (doc.exists) {
-          const fireProj = doc.data().proj;
-
-          if (fireProj !== undefined) {
-            found = fireProj.find(
-              (element) => element === { description: projectTitle }
-            );
-          }
-        }
-      });
-
     //Error handling for project title input
-    if (projectTitle !== "") {
-      if (found === undefined) {
-
-        if (endDateTime !== "") {
-          props.setProjTitle(projectTitle, endDateTime);
-        toast.success("Project successfully created!");
-        } else {
-          toast.error("Please select date and time of the End of Project")
-        }
-        
-      } else {
-        toast.error("This Project Name already exists");
-      }
-    } else {
+    if (projectTitle === "") {
       toast.error("Please fill in the Project Name");
+    } else if (endDateTime === "") {
+      toast.error("Please select date and time of the End of Project");
+    } else {
+      toast.success(
+        "Project successfully created! Please check under My Projects to access it"
+      );
+      props.setProjTitle(projectTitle, endDateTime);
     }
-
-
-
   };
 
   return (
@@ -141,52 +80,6 @@ function CreateNewProject(props) {
                   shrink: true,
                 }}
               />
-      
-
-              {/* <Grid container justify="flex-left">
-                <Grid item lg={11}>
-                  <TextValidator
-                    variant="outlined"
-                    fullWidth
-                    label="Add Group Member"
-                    // validators={["required"]}
-                    // errorMessages={["this field is required"]}
-                    autoComplete="off"
-                    onChange={(event) => {
-                      addNewMember(event.target.value);
-                    }}
-                  />
-                </Grid>
-                <Grid item lg={1}>
-                  <IconButton
-                    variant="contained"
-                    color="primary"
-                    style={{ height: 55, width: 50 }}
-                    onClick={handleAddMembers}
-                  >
-                    <AddCircleIcon></AddCircleIcon>
-                  </IconButton>
-                </Grid>
-              </Grid>
-
-              <br></br>
-              <Typography align="center"> Member List:</Typography>
-              <br></br>
-
-              <List>
-                {members.map((task, index) => (
-                  <ListItem divider alignItems="flex-start">
-                    <ListItemIcon>
-                      <GroupIcon></GroupIcon>
-                    </ListItemIcon>
-                    <ListItemText>
-                      <td>{index + 1}. </td>
-                      <td>{task.description}</td>
-                    </ListItemText>
-
-                  </ListItem>
-                ))}
-              </List> */}
 
               <Button
                 type="submit"

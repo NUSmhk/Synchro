@@ -11,10 +11,9 @@ import {
   CardContent,
 } from "@material-ui/core";
 import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
-import { fire, db } from "../helpers/db";
-import { ToastContainer, toast } from "react-toastify";
+import { fire} from "../helpers/db";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import firebase from "firebase";
 import Toast from "../Components/Toast";
 import {createUser} from "../services/userServices"
 
@@ -55,41 +54,6 @@ const SignUp = (props) => {
           });
 
           createUser(name);
-
-
-
-          //Update user info which is name + email
-          db.collection("users")
-            .doc(user.uid)
-            .collection("userInfo")
-            .doc(user.uid)
-            .set({
-              Name: name,
-              Email: email,
-            });
-
-          //Set empty array for projects in firestore
-          db.collection("users")
-            .doc(user.uid)
-            .collection("projects")
-            .doc(user.uid)
-            .set({});
-
-          //Set empty array for events for user calendar in firestore
-          db.collection("users")
-            .doc(user.uid)
-            .collection("Events")
-            .doc(user.uid)
-            .set({});
-
-          //To set collection of all emails/but need to find a way to update them with profile updates
-          db.collection("allEmail")
-            .doc("emails")
-            .update({
-              emails: firebase.firestore.FieldValue.arrayUnion({
-                Email: email,
-              }),
-            });
             
           toast.success("User Registered Successfully");
         }

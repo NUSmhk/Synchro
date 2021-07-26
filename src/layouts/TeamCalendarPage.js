@@ -16,13 +16,10 @@ import {
   ListItemText,
   Typography,
 } from "@material-ui/core";
-
-import { fire, db } from "../helpers/db";
+import { fire } from "../helpers/db";
 import BigCalendar from "react-big-calendar-like-google";
 import moment from "moment";
-import firebase from "firebase";
 import AddToQueueIcon from "@material-ui/icons/AddToQueue";
-import CalendarTodayIcon from "@material-ui/icons/CalendarToday";
 import AddCircleIcon from "@material-ui/icons/AddCircle";
 import GroupIcon from "@material-ui/icons/Group";
 import Toast from "../Components/Toast";
@@ -47,7 +44,7 @@ function TeamCalendarPage(props) {
   const classes = useStyles();
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
-
+  const [endDate, setEndDate] = useState("");
   const [members, addMembers] = useState([
     { description: fire.auth().currentUser.email },
   ]);
@@ -160,11 +157,13 @@ function TeamCalendarPage(props) {
             clashing = true;
           }
         });
-      if (clashing) {
+
+       if (new Date(start) >= new Date(endDate)) {
+        toast.error("Please select starting time to be before Project End")
+       } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
       } else {
         setOpenSlotAddEvent(true);
-  
       }
     });
   };
@@ -191,8 +190,9 @@ function TeamCalendarPage(props) {
 
       if (eventName === "") {
         toast.error("Please fill in the Team Event Name");
-      } else if (slotDatetime1 >= slotDatetime2) {
+      } else if (new Date(slotDatetime1) >= new Date(slotDatetime2)) {
         toast.error("Please select valid timings");
+      
       } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
         handleCloseSlotAddEvent();
@@ -220,7 +220,7 @@ function TeamCalendarPage(props) {
 
     getProjectEvents(ID)
       .then((result) => {
-        console.log(result);
+     
         const redEvents = result.mergedEvents.map((eachEvent) => ({
           title: "Unavailable Slot",
           bgColor: "#FF0000",
@@ -270,16 +270,6 @@ function TeamCalendarPage(props) {
     setOpenModifyEvent(true);
   };
 
-  function getRandomColor() {
-    // Random colouring of events generated whenever an event is added
-    var letters = "0123456789ABCDEF";
-    var color = "#";
-    for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
-
   const handleAddEvent = () => {
     // To add Event where it adds to database
 
@@ -304,8 +294,10 @@ function TeamCalendarPage(props) {
 
       if (eventName === "") {
         toast.error("Please fill in the Team Event Name");
-      } else if (datetime1 >= datetime2) {
+      } else if (new Date(datetime1) >= new Date(datetime2)) {
         toast.error("Please select valid timings");
+      } else if (new Date(datetime1) >= new Date(endDate)) {
+        toast.error("Please select starting time to be before Project End")
       } else if (clashing) {
         toast.error("Cannot add Team Event that clashes with Blocked Events!");
         handleUpdateCal();
@@ -314,7 +306,7 @@ function TeamCalendarPage(props) {
           {
             title: eventName,
             start: new Date(datetime1),
-          end: new Date(datetime2),
+            end: new Date(datetime2),
           },
           projID
         ).then((result) => {
@@ -324,7 +316,6 @@ function TeamCalendarPage(props) {
         });
       }
     });
-
   };
 
   const handleCloseAddEvent = () => {
@@ -358,8 +349,7 @@ function TeamCalendarPage(props) {
     getCurrentUserProjects()
       .then((result) => {
         setProjID(result.projects[props.projIndex]._id);
-        console.log(result)
-
+        setEndDate(new Date(result.projects[props.projIndex].endDate));
         updateCal(result.projects[props.projIndex]._id);
         return getProjectUsers(result.projects[props.projIndex]._id);
       })
@@ -392,7 +382,7 @@ function TeamCalendarPage(props) {
   };
 
   const handleUpdateProjName = () => {
-    console.log(event);
+  
     if (projName !== "") {
       changeProjectInfo(projID, { name: projName });
       getCurrentUserProjects().then((result) => {
@@ -406,6 +396,7 @@ function TeamCalendarPage(props) {
 
   const handleUpdateProjEndDate = () => {
     changeProjectInfo(projID, { endDate: endOfProj });
+    setEndDate(new Date(endOfProj));
     toast.success("End of Project changed successfully!");
   };
 
@@ -475,13 +466,13 @@ function TeamCalendarPage(props) {
             justify="flex-end"
           >
             <Grid item>
-              <Button variant="contained" color="primary" onClick={handleAdd}>
+              <Button variant="contained" color="primary" onClick={() => handleAdd()}>
                 {" "}
                 ADD TEAM EVENT{" "}
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={closeDia}>
+              <Button variant="contained" color="primary" onClick={() => closeDia()}>
                 {" "}
                 CANCEL{" "}
               </Button>
@@ -523,7 +514,7 @@ function TeamCalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateProjName}
+              onClick={() => handleUpdateProjName()}
               fullWidth
             >
               {" "}
@@ -549,7 +540,7 @@ function TeamCalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateProjEndDate}
+              onClick={() => handleUpdateProjEndDate()}
               fullWidth
             >
               {" "}
@@ -568,19 +559,36 @@ function TeamCalendarPage(props) {
         "Please fill in Email of a Group Member that you want to add"
       );
     } else {
+      getProjectEvents(projID)
+      .then((result) => {
+        result.projectEvents.forEach((eachEvent) => {
+          deleteProjectEvent(projID, eachEvent._id)
+        })
+      })
+
       addUserToProject(newMember, projID).then(
         (result) => {
-          addMembers([
-            ...members,
-            {
-              description: newMember,
-            },
-          ]);
-          toast.success("Member added successfully!");
+          getCurrentUserProjects()
+            .then((result) => {
+              setProjID(result.projects[props.projIndex]._id);
+              setEndDate(new Date(result.projects[props.projIndex].endDate));
+              updateCal(result.projects[props.projIndex]._id);
+              return getProjectUsers(result.projects[props.projIndex]._id);
+            })
+            .then((result) => {
+              addMembers(
+                result.map((mem) => ({
+                  email: mem.email,
+                  uid: mem._id,
+                  name: mem.displayName,
+                }))
+              );
+            });
+          toast.success("Member added successfully! Please re-add all Team Events");
           handleUpdateCal();
         },
         (error) => {
-          toast.error(error.message);
+          toast.error("Member is not a registered user!");
         }
       );
     }
@@ -614,7 +622,7 @@ function TeamCalendarPage(props) {
                 variant="contained"
                 color="primary"
                 style={{ height: 55, width: 50 }}
-                onClick={handleAddMembers}
+                onClick={() => handleAddMembers()}
               >
                 <AddCircleIcon></AddCircleIcon>
               </IconButton>
@@ -624,17 +632,19 @@ function TeamCalendarPage(props) {
           <br></br>
           <Typography> Member List:</Typography>
           <br></br>
-
+      
           <List>
             {members.map((member, index) => (
+              
+              <Grid container align="center">
               <ListItem divider alignItems="flex-start">
                 <ListItemIcon>
                   <GroupIcon></GroupIcon>
                 </ListItemIcon>
                 <ListItemText>
-                  <td>{index + 1 + ". "} </td>
-                  <td>{member.email + " "}</td>
-                  <td>{"(" + member.name + ")"}</td>
+                  <td>
+                    {index + 1 + ". " + member.email + " (" + member.name + ")"}
+                  </td>
                 </ListItemText>
                 <td>
                   {index !== 0 ? (
@@ -649,6 +659,7 @@ function TeamCalendarPage(props) {
                   )}
                 </td>
               </ListItem>
+              </Grid>
             ))}
           </List>
         </DialogContent>
@@ -688,42 +699,42 @@ function TeamCalendarPage(props) {
     };
 
     const handleUpdateStartEnd = () => {
-
       var clashing = false;
-    getProjectEvents(projID).then((result) => {
-      result.mergedEvents
-        .map((eachEvent) => ({
-          start: new Date(eachEvent.start),
-          end: new Date(eachEvent.end),
-        }))
-        .map((eachEvent) => {
-          const start = new Date(newDateTime1);
-          const end = new Date(newDateTime2);
-          if (
-            (eachEvent.start < start && eachEvent.end > start) ||
-            (eachEvent.start < end && eachEvent.end > end) ||
-            (eachEvent.start >= start && eachEvent.end <= end)
-          ) {
-            clashing = true;
-          }
-        });
-      
-        if (newDateTime1 >= newDateTime2) {
-        toast.error("Please select valid timings");
-      } else if (clashing) {
-        toast.error("Modified Team Event is clashing with Blocked Events!");
-        handleUpdateCal();
-      } else {
-        modifyProjectEvent(
-          { start: newDateTime1, end: newDateTime2 },
-          projID,
-          currEvent
-        ).then((result) => handleUpdateCal());
-        toast.success("Team Event duration updated successfully!");
-        handleCloseModifyEvent();
-      }
-    });
+      getProjectEvents(projID).then((result) => {
+        result.mergedEvents
+          .map((eachEvent) => ({
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+          }))
+          .map((eachEvent) => {
+            const start = new Date(newDateTime1);
+            const end = new Date(newDateTime2);
+            if (
+              (eachEvent.start < start && eachEvent.end > start) ||
+              (eachEvent.start < end && eachEvent.end > end) ||
+              (eachEvent.start >= start && eachEvent.end <= end)
+            ) {
+              clashing = true;
+            }
+          });
 
+        if (new Date(newDateTime1) >= new Date(newDateTime2)) {
+          toast.error("Please select valid timings");
+        } else if (new Date(newDateTime1) >= new Date(endDate)) {
+          toast.error("Please select starting time to be before Project End");
+        } else if (clashing) {
+          toast.error("Modified Team Event is clashing with Blocked Events!");
+          handleUpdateCal();
+        } else {
+          modifyProjectEvent(
+            { start: newDateTime1, end: newDateTime2 },
+            projID,
+            currEvent
+          ).then((result) => handleUpdateCal());
+          toast.success("Team Event duration updated successfully!");
+          handleCloseModifyEvent();
+        }
+      });
     };
 
     const handleDeleteEvent = () => {
@@ -755,7 +766,7 @@ function TeamCalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateEventName}
+              onClick={() => handleUpdateEventName()}
               fullWidth
             >
               {" "}
@@ -765,7 +776,7 @@ function TeamCalendarPage(props) {
           <br></br>
           <TextField
             id="datetime-local"
-            label="New Event Start"
+            label="New Team Event Start"
             type="datetime-local"
             defaultValue={inputDateTime(newDateTime1)}
             className={classes.textField}
@@ -777,7 +788,7 @@ function TeamCalendarPage(props) {
           <br></br>
           <TextField
             id="datetime-local"
-            label="New Event End"
+            label="New Team Event End"
             type="datetime-local"
             defaultValue={inputDateTime(newDateTime2)}
             className={classes.textField}
@@ -793,7 +804,7 @@ function TeamCalendarPage(props) {
             <Button
               variant="contained"
               color="primary"
-              onClick={handleUpdateStartEnd}
+              onClick={() => handleUpdateStartEnd()}
               fullWidth
             >
               {" "}
@@ -804,7 +815,7 @@ function TeamCalendarPage(props) {
           <Button
             variant="contained"
             color="secondary"
-            onClick={handleDeleteEvent}
+            onClick={() => handleDeleteEvent()}
             fullWidth
           >
             {" "}
@@ -845,7 +856,7 @@ function TeamCalendarPage(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleClickOpenProjInfo}
+            onClick={() => handleClickOpenProjInfo()}
             startIcon={<AddToQueueIcon />}
           >
             {" "}
@@ -858,8 +869,8 @@ function TeamCalendarPage(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleClickOpenMemberList}
-            startIcon={<AddToQueueIcon />}
+            onClick={() => handleClickOpenMemberList()}
+            startIcon={<GroupIcon></GroupIcon>}
           >
             {" "}
             Member List{" "}
@@ -872,7 +883,7 @@ function TeamCalendarPage(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleClickOpenAddEvent}
+            onClick={() => handleClickOpenAddEvent()}
             startIcon={<AddToQueueIcon />}
           >
             {" "}
@@ -893,6 +904,7 @@ function TeamCalendarPage(props) {
           defaultDate={new Date()}
           onSelectEvent={(event) => {
             if (event.teamEvent) {
+
               setNewDateTime1(event.start);
               setNewDateTime2(event.end);
               setCurrEvent(event.id);
@@ -901,21 +913,12 @@ function TeamCalendarPage(props) {
               toast.error("Cannot modify personal events!");
             }
           }}
-          onSelectSlot={
-            (slotInfo) => {
-              setSlotDatetime1(slotInfo.start);
-              setSlotDatetime2(slotInfo.end);
+          onSelectSlot={(slotInfo) => {
+            setSlotDatetime1(slotInfo.start);
+            setSlotDatetime2(slotInfo.end);
 
-              handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
-            }
-
-            // (slotInfo) =>
-            // alert(
-            //   `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
-            //     `\nend: ${slotInfo.end.toLocaleString()}` +
-            //     `\naction: ${slotInfo.action}`
-            // )
-          }
+            handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
+          }}
         ></BigCalendar>
       </Paper>
     </main>
