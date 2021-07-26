@@ -134,7 +134,7 @@ function MyProjects(props) {
 
                      if(fire.auth().currentUser.uid === result[0].uid) {
                         
-                    props.setTeamPages(<TeamCalendarPage projIndex={index} setProjTitle={props.setTeamTitles}/>);
+                    props.setTeamPages(<TeamCalendarPage projIndex={index} setProjTitle={props.setTeamTitles} projEndDate={proj.endDate}/>);
                     props.setTeamTitles(proj.name);
 
                      } else {

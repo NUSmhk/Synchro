@@ -123,91 +123,157 @@ function CalendarPage(props) {
     setOpenImportCal(true);
   };
 
-  const handleClickOpenSlotAddEvent = () => {
+  const handleClickOpenSlotAddEvent = (start, end) => {
     // To open Add Event on clicked slot
-    setOpenSlotAddEvent(true);
+
+    var clashing = false;
+    getCurrentUserEvents().then((result) => {
+      result.events
+        .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
+        .map((eachEvent) => ({
+          start: new Date(eachEvent.start),
+          end: new Date(eachEvent.end),
+        }))
+        .map((eachEvent) => {
+          if (
+            (eachEvent.start < start && eachEvent.end > start) ||
+            (eachEvent.start < end && eachEvent.end > end) ||
+            (eachEvent.start >= start && eachEvent.end <= end)
+          ) {
+            clashing = true;
+          }
+        });
+      if (clashing) {
+        toast.error("Cannot add event that clashes with Team events!");
+        handleUpdateCal();
+      } else {
+        setOpenSlotAddEvent(true);
+      }
+    });
   };
 
   const handleClickOpenModifyEvent = () => {
     // To open Modify event option after clicking on existing event
     setOpenModifyEvent(true);
+    handleUpdateCal();
   };
 
   const handleUpdateCal = () => {
     setUpdater(updater + 1);
-  }
+  };
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
       setEvents(
         result.events.map((eachEvent) => {
-        
-        if (eachEvent.hasOwnProperty("project")) {
-          return({  
-            title: eachEvent.title,
-            bgColor: "#ff0000",
-            start: new Date(eachEvent.start),
-            end: new Date(eachEvent.end),
-            id: eachEvent._id,
-            project: false
-          })
-
-        } else {
-          return({  
-            title: eachEvent.title,
-            bgColor: "#0000FF",
-            start: new Date(eachEvent.start),
-            end: new Date(eachEvent.end),
-            id: eachEvent._id,
-            project: true
-          })
-
-
-        }
-        
-       
-        
-        
-      })
+          if (eachEvent.hasOwnProperty("project")) {
+            return {
+              title: eachEvent.title + " (Project Name: " + eachEvent.project.name + ")",
+              bgColor: "#ff0000",
+              start: new Date(eachEvent.start),
+              end: new Date(eachEvent.end),
+              id: eachEvent._id,
+              project: true,
+            };
+          } else {
+            return {
+              title: eachEvent.title,
+              bgColor: "#0000FF",
+              start: new Date(eachEvent.start),
+              end: new Date(eachEvent.end),
+              id: eachEvent._id,
+              project: false,
+            };
+          }
+        })
       );
-      console.log(result)
+      console.log(result);
     });
-
-    
   };
 
   const handleAddSlotEvent = () => {
-    if (eventName === "") {
-      toast.error("Please fill in the Event Name");
-    } else {
-      addNewEventToCurrentUser({
-        title: eventName,
-        start: new Date(slotDatetime1),
-        end: new Date(slotDatetime2),
-      }).then(result => handleUpdateCal())
-      toast.success("Event added successfully!")
- 
-      handleCloseSlotAddEvent();
-    }
+    var clashing = false;
+    getCurrentUserEvents().then((result) => {
+      result.events
+        .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
+        .map((eachEvent) => ({
+          start: new Date(eachEvent.start),
+          end: new Date(eachEvent.end),
+        }))
+        .map((eachEvent) => {
+          const start = new Date(slotDatetime1);
+          const end = new Date(slotDatetime2);
+
+          if (
+            (eachEvent.start < start && eachEvent.end > start) ||
+            (eachEvent.start < end && eachEvent.end > end) ||
+            (eachEvent.start >= start && eachEvent.end <= end)
+          ) {
+            clashing = true;
+          }
+        });
+
+      if (eventName === "") {
+        toast.error("Please fill in the Event Name");
+      } else if (slotDatetime1 >= slotDatetime2) {
+        toast.error("Please select valid timings");
+      } else if (clashing) {
+        toast.error("Cannot add event that clashes with Team events!");
+        handleCloseSlotAddEvent();
+        handleUpdateCal();
+      } else {
+        addNewEventToCurrentUser({
+          title: eventName,
+          start: new Date(slotDatetime1),
+          end: new Date(slotDatetime2),
+        }).then((result) => handleUpdateCal());
+        toast.success("Event added successfully!");
+        handleCloseSlotAddEvent();
+      }
+    });
   };
 
   const handleAddEvent = () => {
     // To add Event where it adds to database
 
-    if (eventName === "") {
-      toast.error("Please fill in the Event Name");
-    } else if (datetime1 > datetime2) {
-      toast.error("Please select valid timings");
-    } else {
-      addNewEventToCurrentUser({
-        title: eventName,
-        start: new Date(datetime1),
-        end: new Date(datetime2),
-      }).then(result => handleUpdateCal())
-      toast.success("Event added successfully!")
-      
-      handleCloseAddEvent();
-    }
+    var clashing = false;
+    getCurrentUserEvents().then((result) => {
+      result.events
+        .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
+        .map((eachEvent) => ({
+          start: new Date(eachEvent.start),
+          end: new Date(eachEvent.end),
+        }))
+        .map((eachEvent) => {
+          const start = new Date(datetime1);
+          const end = new Date(datetime1);
+
+          if (
+            (eachEvent.start < start && eachEvent.end > start) ||
+            (eachEvent.start < end && eachEvent.end > end) ||
+            (eachEvent.start >= start && eachEvent.end <= end)
+          ) {
+            clashing = true;
+          }
+        });
+
+      if (eventName === "") {
+        toast.error("Please fill in the Event Name");
+      } else if (datetime1 > datetime2) {
+        toast.error("Please select valid timings");
+      } else if (clashing) {
+        toast.error("Cannot add event that clashes with Team events!");
+        handleUpdateCal();
+      } else {
+        addNewEventToCurrentUser({
+          title: eventName,
+          start: new Date(datetime1),
+          end: new Date(datetime2),
+        }).then((result) => handleUpdateCal());
+        toast.success("Event added successfully!");
+        handleCloseAddEvent();
+      }
+    });
   };
 
   const handleCloseAddEvent = () => {
@@ -329,9 +395,8 @@ function CalendarPage(props) {
     const handleUpload = () => {
       // When add Import Cal is clicked after selecting file
       const reader = new FileReader();
-
-
-
+      var importEventsArr = [];
+      var clashing = false;
 
       reader.onload = () => {
         const parsed = ical.parseString(reader.result);
@@ -355,53 +420,56 @@ function CalendarPage(props) {
               );
 
               if (found === undefined) {
-                // db.collection("users")
-                //   .doc(user.uid)
-                //   .collection("Events")
-                //   .doc(user.uid)
-                //   .update({
-                //     events: firebase.firestore.FieldValue.arrayUnion({
-                //       title: e.summary.value.toString(),
-                //       bgColor: getRandomColor(),
-                //       start: startDate,
-                //       end: endDate,
-                //     }),
-                //   });
-
-                addNewEventToCurrentUser({
+                importEventsArr.push({
                   title: e.summary.value.toString(),
                   start: startDate,
-                  end: endDate
-                })
-
-
-
+                  end: endDate,
+                });
               }
             }
           } else {
-            // db.collection("users")
-            //   .doc(user.uid)
-            //   .collection("Events")
-            //   .doc(user.uid)
-            //   .update({
-            //     events: firebase.firestore.FieldValue.arrayUnion({
-            //       title: e.summary.value.toString(),
-            //       bgColor: getRandomColor(),
-            //       start: new Date(e.dtstart.value),
-            //       end: new Date(e.dtend.value),
-            //     }),
-            //   });
-            addNewEventToCurrentUser({
+            importEventsArr.push({
               title: e.summary.value.toString(),
               start: new Date(e.dtstart.value),
-              end: new Date(e.dtend.value)
-            })
-
+              end: new Date(e.dtend.value),
+            });
           }
-        });
 
-        updateCal()
-        toast.success("Events imported successfully!")
+          getCurrentUserEvents().then((result) => {
+            result.events
+              .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
+              .map((eachEvent) => ({
+                start: new Date(eachEvent.start),
+                end: new Date(eachEvent.end),
+              }))
+              .map((eachEvent) => {
+                importEventsArr.forEach((importEvent) => {
+                  if (
+                    (eachEvent.start < importEvent.start &&
+                      eachEvent.end > importEvent.start) ||
+                    (eachEvent.start < importEvent.end &&
+                      eachEvent.end > importEvent.end) ||
+                    (eachEvent.start >= importEvent.start &&
+                      eachEvent.end <= importEvent.end)
+                  ) {
+                    clashing = true;
+                    console.log("clashes true");
+                  }
+                });
+              });
+            if (clashing) {
+              toast.error(
+                "Some imported events are clashing with Team events!"
+              );
+            } else {
+              importEventsArr.forEach((importEvent) =>
+                addNewEventToCurrentUser(importEvent)
+              );
+              handleUpdateCal();
+              toast.success("Events imported successfully!");
+            }
+          });
+        });
       };
 
       if (selectedFile === null || selectedFile.type !== "text/calendar") {
@@ -479,7 +547,7 @@ function CalendarPage(props) {
         modifyUserEvent({ title: newEventName }, currEvent).then((result) =>
           handleUpdateCal()
         );
-        toast.success("Event Name updated successfully!")
+        toast.success("Event Name updated successfully!");
         handleCloseModifyEvent();
       } else {
         toast.error("Please fill in the New Event Name");
@@ -487,27 +555,48 @@ function CalendarPage(props) {
     };
 
     const handleUpdateStartEnd = () => {
-      if (newDateTime1 > newDateTime2) {
-        toast.error("Please select valid timings");
-      } else {
-        modifyUserEvent(
-          { start: newDateTime1, end: newDateTime2 },
-          currEvent
-        ).then((result) =>
-          handleUpdateCal()
-        );
-        toast.success("Event duration updated successfully!")
-        handleCloseModifyEvent();
-      }
+      var clashing = false;
+      getCurrentUserEvents().then((result) => {
+        result.events
+          .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
+          .map((eachEvent) => ({
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+          }))
+          .map((eachEvent) => {
+            const start = new Date(newDateTime1);
+            const end = new Date(newDateTime2);
+
+            if (
+              (eachEvent.start < start && eachEvent.end > start) ||
+              (eachEvent.start < end && eachEvent.end > end) ||
+              (eachEvent.start >= start && eachEvent.end <= end)
+            ) {
+              clashing = true;
+            }
+          });
+
+        if (newDateTime1 >= newDateTime2) {
+          toast.error("Please select valid timings");
+        }
+        if (clashing) {
+          toast.error("Modified event is clashing with Team events!");
+          handleUpdateCal();
+        } else {
+          modifyUserEvent(
+            { start: newDateTime1, end: newDateTime2 },
+            currEvent
+          ).then((result) => handleUpdateCal());
+          toast.success("Event duration updated successfully!");
+          handleCloseModifyEvent();
+        }
+      });
     };
 
     const handleDeleteEvent = () => {
-      deleteUserEvent(currEvent).then((result) =>
-       handleUpdateCal()
+      deleteUserEvent(currEvent).then((result) => handleUpdateCal());
 
-      );
-
-      toast.success("Event successfully deleted!")
+      toast.success("Event successfully deleted!");
       handleCloseModifyEvent();
     };
 
@@ -519,7 +608,7 @@ function CalendarPage(props) {
         style={{ textAlign: "center" }}
       >
         <DialogTitle id="form-dialog-title">Modify Current Event</DialogTitle>
-        <DialogContent >
+        <DialogContent>
           <TextField
             label="New Event Name"
             variant="outlined"
@@ -588,16 +677,12 @@ function CalendarPage(props) {
           </Button>
         </DialogContent>
       </Dialog>
-    
     );
   };
 
   useEffect(() => {
     updateCal();
-  
   }, [updater]);
-
-  
 
   return (
     <main className={classes.content}>
@@ -630,17 +715,6 @@ function CalendarPage(props) {
           <Button
             variant="contained"
             color="primary"
-            onClick={updateCal}
-            startIcon={<AddToQueueIcon />}
-          >
-            {" "}
-            Refresh{" "}
-          </Button>
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
             onClick={handleClickOpenAddEvent}
             startIcon={<AddToQueueIcon />}
           >
@@ -669,33 +743,29 @@ function CalendarPage(props) {
         {ModifyEventDialog()}
 
         <BigCalendar
-        showMultiDayTimes={true}
+          showMultiDayTimes={true}
           selectable
           events={event}
           defaultView="week"
           scrollToTime={new Date(2000, 1, 1, 6)}
           defaultDate={new Date()}
           onSelectEvent={(event) => {
-
-            if (event.project) {
+            if (!event.project) {
               console.log(event);
               setNewDateTime1(event.start);
               setNewDateTime2(event.end);
               setCurrEvent(event.id);
               handleClickOpenModifyEvent();
-
             } else {
-              toast.error("Cannot modify Team events!")
+              toast.error("Cannot modify Team events!");
             }
-
-            
           }}
           onSelectSlot={
             (slotInfo) => {
               setSlotDatetime1(slotInfo.start);
               setSlotDatetime2(slotInfo.end);
 
-              handleClickOpenSlotAddEvent();
+              handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
             }
 
             // (slotInfo) =>

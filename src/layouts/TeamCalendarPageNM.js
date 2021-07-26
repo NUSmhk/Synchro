@@ -252,7 +252,7 @@ function TeamCalendarPageNM(props) {
         </DialogTitle>
         <DialogContent >
             <td>{props.projName}</td>
-            <td> {props.projEndDate}</td>
+            <td> {new Date(props.projEndDate).toString()}</td>
         
         </DialogContent>
       </Dialog>
