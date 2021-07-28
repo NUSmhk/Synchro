@@ -559,9 +559,16 @@ function TeamCalendarPage(props) {
 
   const handleAddMembers = () => {
     //error handling for members, need to add checks for existence of members
+    var duplicateMemb = members.filter(mem => mem.email === newMember)
+    console.log(duplicateMemb)
+
     if (newMember === "") {
       toast.error(
         "Please fill in Email of a Group Member that you want to add"
+      );
+    } else if (duplicateMemb !== []) {
+      toast.error(
+        "Unable to add duplicate members! Please add a new member instead"
       );
     } else {
       getProjectEvents(projID).then((result) => {
