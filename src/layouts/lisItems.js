@@ -21,6 +21,7 @@ function MainListItems(props) {
       name: title,
       endDate: endDate,
     });
+
   };
 
   const setTeamPage = (page) => {
@@ -91,7 +92,7 @@ function MainListItems(props) {
         button
         onClick={() => {
           setSelected(3);
-          props.setPages(<CreateNewProject setProjTitle={handleProjTitle} />);
+          props.setPages(<CreateNewProject setProjTitle={handleProjTitle}/>);
           props.setTitles("Create New Project");
         }}
         selected={selected === 3}

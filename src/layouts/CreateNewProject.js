@@ -14,6 +14,7 @@ import { ValidatorForm, TextValidator } from "react-material-ui-form-validator";
 
 import Toast from "../Components/Toast";
 import { toast } from "react-toastify";
+import MyProjects from "./MyProjects";
 
 function CreateNewProject(props) {
   const classes = useStyles();

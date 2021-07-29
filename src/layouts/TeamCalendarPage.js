@@ -384,8 +384,9 @@ function TeamCalendarPage(props) {
       changeProjectInfo(projID, { name: projName });
       getCurrentUserProjects().then((result) => {
         props.setProjTitle(result.projects[props.projIndex].name);
+        toast.success("Project Name changed successfully!");
       });
-      toast.success("Project Name changed successfully!");
+     
     } else {
       toast.error("Please fill in a new Project Name");
     }
@@ -566,7 +567,7 @@ function TeamCalendarPage(props) {
       toast.error(
         "Please fill in Email of a Group Member that you want to add"
       );
-    } else if (duplicateMemb !== []) {
+    } else if (duplicateMemb.length !== 0) {
       toast.error(
         "Unable to add duplicate members! Please add a new member instead"
       );
