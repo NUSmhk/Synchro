@@ -107,7 +107,7 @@ function CalendarPage(props) {
   const [newDateTime1, setNewDateTime1] = useState("");
   const [newDateTime2, setNewDateTime2] = useState("");
 
-  const [event, setEvents] = useState([]);
+  var event = [];
 
   const ical = require("cal-parser");
 
@@ -162,7 +162,7 @@ function CalendarPage(props) {
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
-      setEvents(
+      event = (
         result.events.map((eachEvent) => {
           if (eachEvent.hasOwnProperty("project")) {
             return {
@@ -189,6 +189,7 @@ function CalendarPage(props) {
           }
         })
       );
+      setCal(CalComponent(event))
     });
   };
 
@@ -686,6 +687,40 @@ function CalendarPage(props) {
     );
   };
 
+  const CalComponent = (e) => {
+    return(
+      <BigCalendar
+      showMultiDayTimes={true}
+      selectable
+      events={e}
+      defaultView="week"
+      scrollToTime={new Date(2000, 1, 1, 6)}
+      defaultDate={new Date()}
+      onSelectEvent={(event) => {
+        if (!event.project) {
+          setNewDateTime1(event.start);
+          setNewDateTime2(event.end);
+          setCurrEvent(event.id);
+          handleClickOpenModifyEvent();
+        } else {
+          toast.error("Cannot modify Team events!");
+        }
+      }}
+      onSelectSlot={
+        (slotInfo) => {
+          setSlotDatetime1(slotInfo.start);
+          setSlotDatetime2(slotInfo.end);
+
+          handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
+        }
+
+      }
+    ></BigCalendar>
+    )
+  }
+
+  const [cal, setCal] = useState(CalComponent(event))
+
   useEffect(() => {
     updateCal();
   }, [updater]);
@@ -747,40 +782,8 @@ function CalendarPage(props) {
 
       <Paper className={classes.paper}>
         {ModifyEventDialog()}
-
-        <BigCalendar
-          showMultiDayTimes={true}
-          selectable
-          events={event}
-          defaultView="week"
-          scrollToTime={new Date(2000, 1, 1, 6)}
-          defaultDate={new Date()}
-          onSelectEvent={(event) => {
-            if (!event.project) {
-              setNewDateTime1(event.start);
-              setNewDateTime2(event.end);
-              setCurrEvent(event.id);
-              handleClickOpenModifyEvent();
-            } else {
-              toast.error("Cannot modify Team events!");
-            }
-          }}
-          onSelectSlot={
-            (slotInfo) => {
-              setSlotDatetime1(slotInfo.start);
-              setSlotDatetime2(slotInfo.end);
-
-              handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
-            }
-
-            // (slotInfo) =>
-            // alert(
-            //   `selected slot: \n\nstart ${slotInfo.start.toLocaleString()} ` +
-            //     `\nend: ${slotInfo.end.toLocaleString()}` +
-            //     `\naction: ${slotInfo.action}`
-            // )
-          }
-        ></BigCalendar>
+        {cal}
+       
       </Paper>
     </main>
   );
