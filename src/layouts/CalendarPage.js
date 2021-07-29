@@ -107,7 +107,7 @@ function CalendarPage(props) {
   const [newDateTime1, setNewDateTime1] = useState("");
   const [newDateTime2, setNewDateTime2] = useState("");
 
-  var event = [];
+  let event = [];
 
   const ical = require("cal-parser");
 
@@ -162,34 +162,33 @@ function CalendarPage(props) {
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
-      event = (
-        result.events.map((eachEvent) => {
-          if (eachEvent.hasOwnProperty("project")) {
-            return {
-              title:
-                eachEvent.title +
-                " (Project Name: " +
-                eachEvent.project.name +
-                ")",
-              bgColor: "#ff0000",
-              start: new Date(eachEvent.start),
-              end: new Date(eachEvent.end),
-              id: eachEvent._id,
-              project: true,
-            };
-          } else {
-            return {
-              title: eachEvent.title,
-              bgColor: "#0000FF",
-              start: new Date(eachEvent.start),
-              end: new Date(eachEvent.end),
-              id: eachEvent._id,
-              project: false,
-            };
-          }
-        })
-      );
-      setCal(CalComponent(event))
+       event = result.events.map((eachEvent) => {
+        if (eachEvent.hasOwnProperty("project")) {
+          return {
+            title:
+              eachEvent.title +
+              " (Project Name: " +
+              eachEvent.project.name +
+              ")",
+            bgColor: "#ff0000",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: true,
+          };
+        } else {
+          return {
+            title: eachEvent.title,
+            bgColor: "#0000FF",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: false,
+          };
+        }
+      });
+      console.log(event)
+      setCal(CalComponent(event));
     });
   };
 
@@ -465,19 +464,18 @@ function CalendarPage(props) {
                   }
                 });
               });
-            if (clashing) {
-              toast.error(
-                "Some imported events are clashing with Team events!"
-              );
-            } else {
-              importEventsArr.forEach((importEvent) =>
-                addNewEventToCurrentUser(importEvent)
-              );
-              handleUpdateCal();
-              toast.success("Events imported successfully!");
-            }
           });
         });
+
+        if (clashing) {
+          toast.error("Some imported events are clashing with Team events!");
+        } else {
+          importEventsArr.forEach((importEvent) =>
+            addNewEventToCurrentUser(importEvent)
+          );
+          handleUpdateCal();
+          toast.success("Events imported successfully!");
+        }
       };
 
       if (selectedFile === null || selectedFile.type !== "text/calendar") {
@@ -688,41 +686,41 @@ function CalendarPage(props) {
   };
 
   const CalComponent = (e) => {
-    return(
+    return (
       <BigCalendar
-      showMultiDayTimes={true}
-      selectable
-      events={e}
-      defaultView="week"
-      scrollToTime={new Date(2000, 1, 1, 6)}
-      defaultDate={new Date()}
-      onSelectEvent={(event) => {
-        if (!event.project) {
-          setNewDateTime1(event.start);
-          setNewDateTime2(event.end);
-          setCurrEvent(event.id);
-          handleClickOpenModifyEvent();
-        } else {
-          toast.error("Cannot modify Team events!");
-        }
-      }}
-      onSelectSlot={
-        (slotInfo) => {
+        showMultiDayTimes={true}
+        selectable
+        events={e}
+        defaultView="week"
+        scrollToTime={new Date(2000, 1, 1, 6)}
+        defaultDate={new Date()}
+        onSelectEvent={(event) => {
+          if (!event.project) {
+            setNewDateTime1(event.start);
+            setNewDateTime2(event.end);
+            setCurrEvent(event.id);
+            handleClickOpenModifyEvent();
+          } else {
+            toast.error("Cannot modify Team events!");
+          }
+        }}
+        onSelectSlot={(slotInfo) => {
           setSlotDatetime1(slotInfo.start);
           setSlotDatetime2(slotInfo.end);
 
           handleClickOpenSlotAddEvent(slotInfo.start, slotInfo.end);
-        }
+        }}
+      ></BigCalendar>
+    );
+  };
 
-      }
-    ></BigCalendar>
-    )
-  }
-
-  const [cal, setCal] = useState(CalComponent(event))
+  const [cal, setCal] = useState(CalComponent(event));
 
   useEffect(() => {
     updateCal();
+    console.log(
+  event
+    )
   }, [updater]);
 
   return (
@@ -783,7 +781,6 @@ function CalendarPage(props) {
       <Paper className={classes.paper}>
         {ModifyEventDialog()}
         {cal}
-       
       </Paper>
     </main>
   );
