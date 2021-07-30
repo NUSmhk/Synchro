@@ -107,7 +107,7 @@ function CalendarPage(props) {
   const [newDateTime1, setNewDateTime1] = useState("");
   const [newDateTime2, setNewDateTime2] = useState("");
 
-  let event = [];
+  // let event = [];
 
   const ical = require("cal-parser");
 
@@ -162,7 +162,7 @@ function CalendarPage(props) {
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
-       event = result.events.map((eachEvent) => {
+       const event = result.events.map((eachEvent) => {
         if (eachEvent.hasOwnProperty("project")) {
           return {
             title:
@@ -227,9 +227,13 @@ function CalendarPage(props) {
           title: eventName,
           start: new Date(slotDatetime1),
           end: new Date(slotDatetime2),
-        }).then((result) => handleUpdateCal());
-        toast.success("Event added successfully!");
-        handleCloseSlotAddEvent();
+        }).then((result) =>{
+    
+          handleUpdateCal()
+          toast.success("Event added successfully!");
+          handleCloseSlotAddEvent();
+        } );
+       
       }
     });
   };
@@ -714,13 +718,12 @@ function CalendarPage(props) {
     );
   };
 
-  const [cal, setCal] = useState(CalComponent(event));
+  const [cal, setCal] = useState(CalComponent([]));
 
   useEffect(() => {
     updateCal();
-    console.log(
-  event
-    )
+    console.log("use effect")
+    
   }, [updater]);
 
   return (
