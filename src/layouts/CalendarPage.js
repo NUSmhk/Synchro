@@ -272,9 +272,8 @@ function CalendarPage(props) {
             project: false,
           }]
           setCal(CalComponent(newEvents))
-          toast.success("Event added successfully!");
-          handleCloseSlotAddEvent();
-          handleUpdateCal();     
+          setTimeout(() => {handleUpdateCal(); handleCloseSlotAddEvent(); toast.success("Event added successfully!");}, 5000);
+          
         }
         );
       }
