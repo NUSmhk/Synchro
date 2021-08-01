@@ -57,6 +57,8 @@ function TeamCalendarPage(props) {
   const [openProjInfo, setOpenProjInfo] = useState(false);
   const [openModifyEvent, setOpenModifyEvent] = useState(false);
 
+  
+
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
     const month = date.getMonth() + 1;

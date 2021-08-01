@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "react-big-calendar-like-google/lib/css/react-big-calendar.css";
 import {
   makeStyles,
@@ -24,6 +24,7 @@ import {
   getCurrentUserEvents,
   modifyUserEvent,
 } from "../services/userServices";
+import { ControlCamera } from "@material-ui/icons";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
@@ -40,6 +41,15 @@ function CalendarPage(props) {
 
   const [currEvent, setCurrEvent] = useState({});
   const [updater, setUpdater] = useState(0);
+
+  const useDidMountEffect = (func, deps) => {
+    const didMount = useRef(false);
+
+    useEffect(() => {
+      if (didMount.current) func();
+      else didMount.current = true;
+    }, deps);
+  };
 
   // Constants below to format date time for current date time of Add Event pop out
   const currMonth = (date) => {
@@ -162,7 +172,7 @@ function CalendarPage(props) {
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
-       const event = result.events.map((eachEvent) => {
+      const event = result.events.map((eachEvent) => {
         if (eachEvent.hasOwnProperty("project")) {
           return {
             title:
@@ -187,14 +197,40 @@ function CalendarPage(props) {
           };
         }
       });
-      console.log(event)
       setCal(CalComponent(event));
     });
   };
 
   const handleAddSlotEvent = () => {
     var clashing = false;
+    var currEvents;
     getCurrentUserEvents().then((result) => {
+      currEvents = result.events.map((eachEvent) => {
+        if (eachEvent.hasOwnProperty("project")) {
+          return {
+            title:
+              eachEvent.title +
+              " (Project Name: " +
+              eachEvent.project.name +
+              ")",
+            bgColor: "#ff0000",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: true,
+          };
+        } else {
+          return {
+            title: eachEvent.title,
+            bgColor: "#0000FF",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: false,
+          };
+        }
+      });
+
       result.events
         .filter((eachEvent) => eachEvent.hasOwnProperty("project"))
         .map((eachEvent) => ({
@@ -223,17 +259,24 @@ function CalendarPage(props) {
         handleCloseSlotAddEvent();
         handleUpdateCal();
       } else {
-        addNewEventToCurrentUser({
+      addNewEventToCurrentUser({
           title: eventName,
           start: new Date(slotDatetime1),
           end: new Date(slotDatetime2),
-        }).then((result) =>{
-    
-          handleUpdateCal()
+        }).then((result) => {
+          const newEvents = [...currEvents, {
+            title: eventName,
+            bgColor: "#0000FF",
+            start: new Date(slotDatetime1),
+            end: new Date(slotDatetime2),
+            project: false,
+          }]
+          setCal(CalComponent(newEvents))
           toast.success("Event added successfully!");
           handleCloseSlotAddEvent();
-        } );
-       
+          handleUpdateCal();     
+        }
+        );
       }
     });
   };
@@ -720,11 +763,41 @@ function CalendarPage(props) {
 
   const [cal, setCal] = useState(CalComponent([]));
 
-  useEffect(() => {
+  useDidMountEffect(() => {
     updateCal();
-    console.log("use effect")
-    
   }, [updater]);
+
+  useEffect(() => {
+    getCurrentUserEvents().then((result) => {
+      console.log(result)
+      const event = result.events.map((eachEvent) => {
+        if (eachEvent.hasOwnProperty("project")) {
+          return {
+            title:
+              eachEvent.title +
+              " (Project Name: " +
+              eachEvent.project.name +
+              ")",
+            bgColor: "#ff0000",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: true,
+          };
+        } else {
+          return {
+            title: eachEvent.title,
+            bgColor: "#0000FF",
+            start: new Date(eachEvent.start),
+            end: new Date(eachEvent.end),
+            id: eachEvent._id,
+            project: false,
+          };
+        }
+      });
+      setCal(CalComponent(event));
+    });
+  }, []);
 
   return (
     <main className={classes.content}>
