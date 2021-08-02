@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
+  CircularProgress
 } from "@material-ui/core";
 
 import BigCalendar from "react-big-calendar-like-google";
@@ -25,6 +26,7 @@ import {
   modifyUserEvent,
 } from "../services/userServices";
 import { ControlCamera } from "@material-ui/icons";
+import ClickAwayListener from "material-ui/internal/ClickAwayListener";
 
 BigCalendar.setLocalizer(BigCalendar.momentLocalizer(moment));
 
@@ -32,6 +34,7 @@ function CalendarPage(props) {
   const classes = useStyles();
   const [openAddEvent, setOpenAddEvent] = useState(false);
   const [eventName, setEventName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -172,6 +175,7 @@ function CalendarPage(props) {
 
   const updateCal = () => {
     getCurrentUserEvents().then((result) => {
+      console.log(result)
       const event = result.events.map((eachEvent) => {
         if (eachEvent.hasOwnProperty("project")) {
           return {
@@ -271,8 +275,10 @@ function CalendarPage(props) {
             end: new Date(slotDatetime2),
             project: false,
           }]
+      
           setCal(CalComponent(newEvents))
-          setTimeout(() => {handleUpdateCal(); handleCloseSlotAddEvent(); toast.success("Event added successfully!");}, 5000);
+          setLoading(true)
+          setTimeout(() => {handleUpdateCal(); handleCloseSlotAddEvent(); setLoading(false); toast.success("Event added successfully!");}, 5000);
           
         }
         );
@@ -348,16 +354,20 @@ function CalendarPage(props) {
       setDatetime1(event.target.value);
     };
 
-    const handleDatetime2 = (event) => {
+    const handleDatetime2 = (event) => { 
       setDatetime2(event.target.value);
     };
 
+  
+
     return (
+      <ClickAwayListener >
       <Dialog // Pop out for Add Event
         open={openDia}
         onClose={closeDia}
         aria-labelledby="form-dialog-title"
         style={{ textAlign: "center" }}
+        disableBackdropClick
       >
         <DialogTitle id="form-dialog-title">Add Event</DialogTitle>
         <DialogContent>
@@ -409,6 +419,7 @@ function CalendarPage(props) {
                 variant="contained"
                 color="primary"
                 onClick={() => handleAdd()}
+                disabled={loading}
               >
                 {" "}
                 ADD EVENT{" "}
@@ -419,14 +430,25 @@ function CalendarPage(props) {
                 variant="contained"
                 color="primary"
                 onClick={() => closeDia()}
+                disabled={loading}
               >
                 {" "}
                 CANCEL{" "}
               </Button>
             </Grid>
           </Grid>
+          {loading ? (
+                <CircularProgress
+                  color="primary"
+                  size={24}
+                  className={classes.buttonProgress}
+                ></CircularProgress>
+              ) : (
+                <Grid></Grid>
+              )}
         </DialogContent>
       </Dialog>
+      </ClickAwayListener>
     );
   };
 
@@ -744,6 +766,7 @@ function CalendarPage(props) {
           if (!event.project) {
             setNewDateTime1(event.start);
             setNewDateTime2(event.end);
+            console.log(event.id)
             setCurrEvent(event.id);
             handleClickOpenModifyEvent();
           } else {
